@@ -1,0 +1,82 @@
+{
+  "trace_id": "tr_dd21cf2a89c4",
+  "incident_id": "inc_d22b72a19c",
+  "camera_id": "cam-04",
+  "agent": "policy",
+  "model": null,
+  "steps": [
+    {
+      "i": 1,
+      "tool": "scan_camera",
+      "input": {
+        "camera_id": "cam-04"
+      },
+      "output_summary": "occlusion sev3: occluded_frac=0.195, occluded_tiles=11, static_object_tiles=0",
+      "decision_reason": "always re-scan before acting",
+      "latency_ms": 699.5,
+      "guard": "allowed",
+      "changed_plan": false
+    },
+    {
+      "i": 2,
+      "tool": "diagnose",
+      "input": {
+        "camera_id": "cam-04"
+      },
+      "output_summary": "faults ['occlusion']; fixable []; cause: object or covering blocking the lens",
+      "decision_reason": "faults ['occlusion']: localise and check fixability",
+      "latency_ms": 0.7,
+      "guard": "allowed",
+      "changed_plan": false
+    },
+    {
+      "i": 3,
+      "tool": "predict_ai_impact",
+      "input": {
+        "camera_id": "cam-04"
+      },
+      "output_summary": "predicted accuracy 0.148 (drop 0.852, 90% CI [0.148, 0.368])",
+      "decision_reason": "quantify harm to the downstream detector before choosing repair vs escalation",
+      "latency_ms": 0.6,
+      "guard": "allowed",
+      "changed_plan": false
+    },
+    {
+      "i": 4,
+      "tool": "describe_fault",
+      "input": {
+        "camera_id": "cam-04",
+        "region_bbox": [
+          286,
+          99,
+          233,
+          261
+        ]
+      },
+      "output_summary": "\"Something is blocking 20% of the view in the middle centre of the frame (tape, sign, foliage or object).\" [rule-based (VLM unavailable)]",
+      "decision_reason": "occlusion needs a human: describe it for the technician",
+      "latency_ms": 14.5,
+      "guard": "allowed",
+      "changed_plan": true
+    },
+    {
+      "i": 5,
+      "tool": "request_human_approval",
+      "input": {
+        "incident_id": "inc_d22b72a19c",
+        "action": "dispatch_technician",
+        "reason": "occlusion sev3: predicted drop 0.85 \u00d7 criticality 2 = 1.70 \u2265 0.6. Something is blocking 20% of the view in the middle centre of the frame (tape, sign, foliage or object)."
+      },
+      "output_summary": "approval apr_71cdbcbe87 pending",
+      "decision_reason": "priority 1.70 above dispatch threshold 0.6",
+      "latency_ms": 2.9,
+      "guard": "allowed",
+      "changed_plan": false
+    }
+  ],
+  "outcome": "approval_requested",
+  "started": 1793032986.0100455,
+  "total_ms": 718.4,
+  "tokens_in": 0,
+  "tokens_out": 0
+}
