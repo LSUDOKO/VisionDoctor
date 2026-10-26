@@ -15,7 +15,6 @@ import time
 from pathlib import Path
 
 import numpy as np
-
 from common import RESULTS, bootstrap_ci, save
 
 FIXABLE = [("drift", (3, 4)), ("exposure", (2, 4)), ("haze", (2, 4)), ("color_cast", (3, 5)), ("noise", (2, 3))]

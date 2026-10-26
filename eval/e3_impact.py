@@ -13,10 +13,9 @@ import json
 import shutil
 
 import numpy as np
+from common import RESULTS, ROOT, bootstrap_ci, save
 from scipy.stats import spearmanr
 from sklearn.inspection import permutation_importance
-
-from common import RESULTS, ROOT, bootstrap_ci, save
 
 from visiondoctor.impact.features import FEATURE_NAMES
 from visiondoctor.impact.predictor import ImpactPredictor, model_path

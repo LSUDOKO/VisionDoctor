@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 from common import RESULTS
 
@@ -56,7 +55,8 @@ def main() -> None:
     e4 = load("e4/repair.json")
     if e4:
         L += ["## E4 — repair effectiveness (`results/e4/repair.json`)", "",
-              "| Fault | Detected | Verified (of attempted) | AP clean → degraded → repaired | Accuracy recovered (95% CI) |", "|---|---|---|---|---|"]
+              "| Fault | Detected | Verified (of attempted) | AP clean → degraded → repaired | Accuracy recovered (95% CI) |",
+              "|---|---|---|---|---|"]
         for f, d in e4.items():
             L.append(f"| {f} | {d['detected_rate']} | {d['verified_rate_of_attempted']} | {d['ap_clean_mean']} → "
                      f"{d['ap_degraded_mean']} → {d['ap_repaired_mean']} | {d['accuracy_recovered_mean']} {d['accuracy_recovered_ci95']} |")

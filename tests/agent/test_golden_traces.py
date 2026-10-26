@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import time
 
+from tests.agent.conftest import open_incident
 from visiondoctor.agent.guard import Guard
 from visiondoctor.agent.loop import AgentRunner
 from visiondoctor.fleet import Fleet
-
-from tests.agent.conftest import open_incident
 
 
 def _tools(trace: dict) -> list[str]:  # type: ignore[type-arg]

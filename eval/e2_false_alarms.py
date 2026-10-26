@@ -9,7 +9,6 @@ ablation replays the same videos with alternating dark (night) segments.
 from __future__ import annotations
 
 import numpy as np
-
 from common import save
 
 from visiondoctor.health.checks.base import CameraState

@@ -8,7 +8,6 @@ residual drift after realign, and accuracy recovered on REAL labels:
 from __future__ import annotations
 
 import numpy as np
-
 from common import bootstrap_ci, bursts, reference, save, videos
 
 from visiondoctor import repair

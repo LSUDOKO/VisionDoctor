@@ -8,11 +8,18 @@ threshold sits above clean variation. Output: results/calibration/thresholds.jso
 from __future__ import annotations
 
 import numpy as np
-
 from common import bursts, reference, save, videos
 
 from visiondoctor.health.checks import (
-    color_cast, drift, exposure, glare, haze, noise, occlusion, sharpness, smudge, vibration,
+    color_cast,
+    drift,
+    exposure,
+    glare,
+    haze,
+    noise,
+    occlusion,
+    sharpness,
+    vibration,
 )
 from visiondoctor.health.checks.base import CameraState
 from visiondoctor.health.scan import scan
