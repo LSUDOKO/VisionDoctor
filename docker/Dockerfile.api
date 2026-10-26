@@ -1,0 +1,25 @@
+# API + agent service (ECS Fargate ARM64). Uses the stock OpenCV 5 wheel: the COOL
+# workload runs on the EC2 COOL fleet; this container serves the dashboard API.
+FROM node:22-bookworm-slim AS web
+WORKDIR /web
+COPY web/package.json web/package-lock.json ./
+RUN npm ci
+COPY web/ ./
+RUN npm run build
+
+FROM python:3.12-slim-bookworm
+RUN apt-get update && apt-get install -y --no-install-recommends curl unzip libgl1 libglib2.0-0 && rm -rf /var/lib/apt/lists/*
+RUN useradd -m -u 10001 vd
+WORKDIR /app
+COPY requirements.lock pyproject.toml README.md ./
+RUN pip install --no-cache-dir --require-hashes -r requirements.lock
+COPY src ./src
+COPY scripts ./scripts
+RUN pip install --no-cache-dir --no-deps -e . && bash scripts/download_models.sh && bash scripts/download_data.sh
+COPY --from=web /web/dist ./web/dist
+RUN mkdir -p /app/vd_state /app/results && chown -R vd /app
+USER vd
+ENV VD_WEB_DIST=/app/web/dist PYTHONUNBUFFERED=1
+EXPOSE 8000
+HEALTHCHECK CMD curl -fs http://localhost:8000/health || exit 1
+CMD ["python", "-m", "visiondoctor.cli", "serve", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,0 +1,13 @@
+# Benchmark baseline (config C): stock OpenCV 5.0 official wheel on x86 (opencv-python-headless
+# 5.0.0.93 exists on PyPI, so no source build is needed). Same code and inputs as config A/B.
+FROM python:3.12-slim-bookworm
+RUN apt-get update && apt-get install -y --no-install-recommends curl unzip && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY requirements.lock pyproject.toml README.md ./
+RUN pip install --no-cache-dir --require-hashes -r requirements.lock
+COPY src ./src
+COPY scripts ./scripts
+COPY bench ./bench
+RUN pip install --no-cache-dir --no-deps -e . && bash scripts/download_data.sh && bash scripts/download_models.sh
+ENV VD_BENCH_CONFIG=C
+CMD ["python", "bench/run.py"]

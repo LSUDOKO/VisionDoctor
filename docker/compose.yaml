@@ -1,0 +1,19 @@
+# Local stack: API + monitor + dashboard on :8000, MCP server (streamable HTTP) on :8765.
+services:
+  api:
+    build: {context: .., dockerfile: docker/Dockerfile.api}
+    ports: ["8000:8000"]
+    environment:
+      VD_BACKEND: local
+      VD_AGENT: ${VD_AGENT:-policy}
+      VD_CAMERAS: "12"
+      VD_SCAN_INTERVAL: "15"
+      VD_CORS: http://localhost:8000
+    volumes: ["vd-state:/app/vd_state"]
+  mcp:
+    build: {context: .., dockerfile: docker/Dockerfile.api}
+    command: ["python", "-m", "visiondoctor.mcp_server.server", "--transport", "streamable-http", "--host", "0.0.0.0", "--port", "8765", "--cameras", "4"]
+    ports: ["127.0.0.1:8765:8765"]
+    environment: {VD_BACKEND: local, VD_STATE_DIR: /app/vd_state/mcp}
+volumes:
+  vd-state: {}

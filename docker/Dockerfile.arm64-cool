@@ -1,0 +1,15 @@
+# Worker image on top of the COOL Docker variant ("Cloud-Optimized OpenCV for AWS Graviton4
+# [Docker]", AWS Marketplace prodview-fsbcuniykfunw). Pull the image URI shown on your
+# subscription's launch page and pass it as COOL_IMAGE. Never pip-install opencv here.
+ARG COOL_IMAGE
+FROM ${COOL_IMAGE}
+WORKDIR /app
+COPY pyproject.toml README.md ./
+COPY src ./src
+COPY scripts ./scripts
+COPY bench ./bench
+RUN /opt/cool/venvs/python_3.12/bin/python -m venv --system-site-packages /opt/vd \
+ && /opt/vd/bin/pip install --no-cache-dir -e . \
+ && bash scripts/download_models.sh && bash scripts/download_data.sh
+RUN /opt/vd/bin/python -m visiondoctor.cv_runtime
+CMD ["/opt/vd/bin/python", "-m", "visiondoctor.cli", "serve", "--host", "0.0.0.0", "--port", "8000"]
