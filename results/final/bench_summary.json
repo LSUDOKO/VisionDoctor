@@ -1,6 +1,16 @@
 {
   "available": true,
   "configs": {
+    "graviton4-stock-c8g.large": {
+      "instance_type": "c8g.large",
+      "is_cool": false,
+      "cv2_version": "5.0.0",
+      "threads": 2,
+      "scans_per_min": 119.14207210673666,
+      "scan_p50_ms": 485.28991550000455,
+      "scan_p95_ms": 503.1399236499908,
+      "usd_per_1M_scans": 7.551208827899819
+    },
     "local-x86": {
       "instance_type": null,
       "is_cool": false,
@@ -13,6 +23,166 @@
     }
   },
   "ops": [
+    {
+      "op": "resize@1080p",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 0.2843
+    },
+    {
+      "op": "cvtColor@1080p",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 3.0489
+    },
+    {
+      "op": "GaussianBlur@1080p",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 13.6578
+    },
+    {
+      "op": "Laplacian@1080p",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 1.5983
+    },
+    {
+      "op": "Sobel@1080p",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 1.0125
+    },
+    {
+      "op": "Canny@1080p",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 5.0536
+    },
+    {
+      "op": "adaptiveThreshold@1080p",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 7.5775
+    },
+    {
+      "op": "morphologyEx@1080p",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 0.6793
+    },
+    {
+      "op": "findContours@1080p",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 3.471
+    },
+    {
+      "op": "warpPerspective@1080p",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 5.2633
+    },
+    {
+      "op": "remap@1080p",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 4.7597
+    },
+    {
+      "op": "calcHist@1080p",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 1.3134
+    },
+    {
+      "op": "filter2D@1080p",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 1.058
+    },
+    {
+      "op": "dft@1080p",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 6.6064
+    },
+    {
+      "op": "calcOpticalFlowPyrLK@1080p",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 2.6488
+    },
+    {
+      "op": "findHomography@1080p",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 0.8837
+    },
+    {
+      "op": "resize@4k",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 1.158
+    },
+    {
+      "op": "cvtColor@4k",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 12.2301
+    },
+    {
+      "op": "GaussianBlur@4k",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 110.7789
+    },
+    {
+      "op": "Laplacian@4k",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 11.1724
+    },
+    {
+      "op": "Sobel@4k",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 7.2384
+    },
+    {
+      "op": "Canny@4k",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 22.8033
+    },
+    {
+      "op": "adaptiveThreshold@4k",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 30.7012
+    },
+    {
+      "op": "morphologyEx@4k",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 3.2569
+    },
+    {
+      "op": "findContours@4k",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 4.6683
+    },
+    {
+      "op": "warpPerspective@4k",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 42.4007
+    },
+    {
+      "op": "remap@4k",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 33.1665
+    },
+    {
+      "op": "calcHist@4k",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 6.37
+    },
+    {
+      "op": "filter2D@4k",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 8.1822
+    },
+    {
+      "op": "dft@4k",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 7.0808
+    },
+    {
+      "op": "calcOpticalFlowPyrLK@4k",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 7.2282
+    },
+    {
+      "op": "findHomography@4k",
+      "config": "graviton4-stock-c8g.large",
+      "median_ms": 1.359
+    },
     {
       "op": "resize@1080p",
       "config": "local-x86",
