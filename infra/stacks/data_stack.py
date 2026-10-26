@@ -15,12 +15,15 @@ TABLES = ("cameras", "health_reports", "incidents", "traces", "approvals", "prof
 class DataStack(cdk.Stack):
     def __init__(self, scope: Construct, cid: str, **kw: object) -> None:
         super().__init__(scope, cid, **kw)  # type: ignore[arg-type]
+        # Lean deploys avoid CDK asset Lambdas (no bootstrap): buckets are retained on destroy.
+        auto_delete = not self.node.try_get_context("lean")
+        removal = cdk.RemovalPolicy.DESTROY if auto_delete else cdk.RemovalPolicy.RETAIN
         self.access_logs = s3.Bucket(
             self, "AccessLogs", block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
             encryption=s3.BucketEncryption.S3_MANAGED, enforce_ssl=True,
             object_ownership=s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,
             lifecycle_rules=[s3.LifecycleRule(expiration=cdk.Duration.days(90))],
-            removal_policy=cdk.RemovalPolicy.DESTROY, auto_delete_objects=True,
+            removal_policy=removal, auto_delete_objects=auto_delete,
         )
         self.bucket = s3.Bucket(
             self, "Media", block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
@@ -32,7 +35,7 @@ class DataStack(cdk.Stack):
                 s3.LifecycleRule(prefix="evidence/", expiration=cdk.Duration.days(90)),
                 s3.LifecycleRule(noncurrent_version_expiration=cdk.Duration.days(30)),
             ],
-            removal_policy=cdk.RemovalPolicy.DESTROY, auto_delete_objects=True,
+            removal_policy=removal, auto_delete_objects=auto_delete,
         )
         self.tables: dict[str, ddb.Table] = {}
         for name in TABLES:

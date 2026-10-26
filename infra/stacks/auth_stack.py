@@ -17,8 +17,10 @@ class AuthStack(cdk.Stack):
             password_policy=cognito.PasswordPolicy(min_length=12, require_digits=True, require_symbols=True,
                                                    require_lowercase=True, require_uppercase=True),
             account_recovery=cognito.AccountRecovery.EMAIL_ONLY,
-            feature_plan=cognito.FeaturePlan.PLUS,
-            standard_threat_protection_mode=cognito.StandardThreatProtectionMode.FULL_FUNCTION,
+            # Lean (credit-only) deploys use the free Essentials tier; Plus adds threat protection.
+            **({"feature_plan": cognito.FeaturePlan.ESSENTIALS} if self.node.try_get_context("lean") else
+               {"feature_plan": cognito.FeaturePlan.PLUS,
+                "standard_threat_protection_mode": cognito.StandardThreatProtectionMode.FULL_FUNCTION}),
             removal_policy=cdk.RemovalPolicy.DESTROY,
         )
         self.client = self.pool.add_client(
@@ -36,4 +38,6 @@ class AuthStack(cdk.Stack):
         cdk.CfnOutput(self, "ClientId", value=self.client.user_pool_client_id)
         NagSuppressions.add_resource_suppressions(self.pool, [
             {"id": "AwsSolutions-COG2", "reason": "MFA optional for the judge demo user; enable for production."},
+            {"id": "AwsSolutions-COG3", "reason": "Threat protection needs the paid Plus plan; off in the lean deploy."},
+            {"id": "AwsSolutions-COG8", "reason": "Plus feature plan is a paid tier; lean deploy uses Essentials."},
         ])

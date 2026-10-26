@@ -18,6 +18,20 @@ from stacks.web_stack import WebStack
 app = cdk.App()
 region = app.node.try_get_context("region") or "us-east-1"
 env = cdk.Environment(account=app.node.try_get_context("account"), region=region)
+
+if app.node.try_get_context("lean"):
+    # Credit-friendly single-instance deploy; no CDK bootstrap needed (scripts/deploy_lean.py).
+    from stacks.lean_stack import LeanStack
+
+    syn = cdk.BootstraplessSynthesizer()
+    data = DataStack(app, "VdData", env=env, synthesizer=syn)
+    auth = AuthStack(app, "VdAuth", env=env, synthesizer=syn)
+    LeanStack(app, "VdLean", data=data, auth=auth, env=env, synthesizer=syn)
+    cdk.Tags.of(app).add("project", "visiondoctor")
+    cdk.Aspects.of(app).add(AwsSolutionsChecks(verbose=True))
+    app.synth()
+    raise SystemExit(0)
+
 cool_ami = app.node.try_get_context("coolAmiId")
 if not cool_ami:
     raise SystemExit("pass -c coolAmiId=ami-... (find it after subscribing to COOL in AWS Marketplace; docs/05 §3)")
