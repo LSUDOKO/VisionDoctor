@@ -47,7 +47,7 @@ async function cognitoSignIn(cfg: AuthConfig, username: string, password: string
   const data = await res.json();
   if (!res.ok) throw new Error(data.message ?? "Sign-in failed");
   if (!data.AuthenticationResult) throw new Error(`Additional step required: ${data.ChallengeName ?? "unknown"}`);
-  return data.AuthenticationResult.AccessToken as string;
+  return data.AuthenticationResult.IdToken as string; // ID token carries the email shown on approvals
 }
 
 function Settings({ onClose, cfg }: { onClose: () => void; cfg?: AuthConfig }) {

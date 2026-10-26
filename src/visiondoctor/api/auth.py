@@ -34,7 +34,7 @@ def current_user(request: Request) -> dict[str, Any]:
     iss = f"https://cognito-idp.{s.aws_region}.amazonaws.com/{s.cognito_user_pool_id}"
     if claims.get("iss") != iss or claims.get("client_id", claims.get("aud")) != s.cognito_client_id:
         raise HTTPException(401, "token not issued for this app")
-    return {"username": claims.get("username") or claims.get("email") or claims["sub"],
+    return {"username": claims.get("email") or claims.get("username") or claims["sub"],
             "groups": claims.get("cognito:groups", [])}
 
 
