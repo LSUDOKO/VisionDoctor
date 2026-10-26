@@ -55,7 +55,17 @@ class AgentRunner:
         run = AgentRun(self.tools, guard, trace)
         try:
             if kind == "bedrock":
-                outcome = await bedrock.run(run, cam, incident_id, int(inc.get("criticality", 3)))
+                try:
+                    outcome = await bedrock.run(run, cam, incident_id, int(inc.get("criticality", 3)))
+                except Exception as e:  # noqa: BLE001
+                    if trace.steps:
+                        raise
+                    # LLM unavailable (access, quota, network) before acting: the deterministic
+                    # policy agent takes over with the same tools, guard and trace format.
+                    log.warning("bedrock_unavailable", error=str(e)[:200])
+                    trace.agent = "policy (bedrock unavailable)"
+                    trace.model = f"{trace.model} unavailable: {type(e).__name__}"
+                    outcome = await policy.run(run, cam, incident_id)
             else:
                 outcome = await policy.run(run, cam, incident_id)
         except Exception as e:  # noqa: BLE001 - the incident must not be lost on agent failure
