@@ -16,7 +16,7 @@ from visiondoctor.observability.metrics import timer
 
 IMMERKAER_K = np.array([[1, -2, 1], [-2, 4, -2], [1, -2, 1]], dtype=np.float32)
 DARK_KERNEL = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
-TILE_METRICS = ("lap_var", "tenengrad", "edge", "lum", "contrast", "dark", "sat", "lab_a", "lab_b", "entropy")
+TILE_METRICS = ("sharp_n", "lap_var", "tenengrad", "edge", "lum", "contrast", "dark", "sat", "lab_a", "lab_b", "entropy")
 
 
 def resize_to_width(img: np.ndarray, width: int) -> np.ndarray:
@@ -118,6 +118,8 @@ def compute_features(img: np.ndarray, grid: int = 8) -> FrameFeatures:
                 entropy[i, j] = float(-(p * np.log2(p)).sum())
 
     tiles = {
+        # Contrast-normalised sharpness: invariant to gain and to haze (both affine in intensity).
+        "sharp_n": lap_var / (contrast**2 + 1.0),
         "lap_var": lap_var,
         "tenengrad": _block_mean(gx * gx + gy * gy, grid),
         "edge": _block_mean(edges, grid) / 255.0,
@@ -134,7 +136,9 @@ def compute_features(img: np.ndarray, grid: int = 8) -> FrameFeatures:
         hist = cv2.calcHist([gray], [0], None, [256], [0, 256]).ravel() / gray.size
     b, gch, r, _ = cv2.mean(img)
     gray_mean = (b + gch + r) / 3.0 + 1e-6
+    gstd = float(gray.std())
     glob = {
+        "sharp_n": float(lap.var()) / (gstd**2 + 1.0),
         "lap_var": float(lap.var()),
         "tenengrad": float(np.mean(gx * gx + gy * gy)),
         "hf_ratio": hf_ratio(gray),
