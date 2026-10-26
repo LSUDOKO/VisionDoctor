@@ -36,6 +36,8 @@ class Guard:
     approved: set[str] = field(default_factory=set)  # approval ids already granted
     severities: dict[str, int] = field(default_factory=dict)
     evidence: dict[str, dict[str, Any]] = field(default_factory=dict)
+    applied: set[str] = field(default_factory=set)  # repair ids applied in this run
+    verified: set[str] = field(default_factory=set)  # repair ids verified as recovered
     repair_attempts: int = 0
     steps: int = 0
     tokens: int = 0
@@ -65,6 +67,13 @@ class Guard:
             return self._repair(args)
         if tool == "create_maintenance_ticket" and not self.approved:
             return Verdict(False, "no approved human approval for this incident")
+        if tool in ("verify_repair", "rollback_repair") and args.get("repair_id") not in self.applied:
+            return Verdict(False, f"unknown repair_id {args.get('repair_id')!r}; applied in this run: {sorted(self.applied)}")
+        if tool == "close_incident" and args.get("resolution") == "auto_fixed":
+            pending = self.applied - self.verified
+            if not self.verified or pending:
+                return Verdict(False, "auto_fixed requires every applied repair to pass verify_repair "
+                                      f"(unverified: {sorted(pending) or 'no repair verified'})")
         return Verdict(True)
 
     def _repair(self, args: dict[str, Any]) -> Verdict:
@@ -95,8 +104,13 @@ class Guard:
         if tool == "scan_camera" and "severities" in out:
             self.severities = dict(out["severities"])
             self.evidence = dict(out.get("key_evidence", {}))
+        elif tool == "apply_repair" and out.get("applied"):
+            self.applied.add(str(out["repair_id"]))
         elif tool == "verify_repair" and out.get("recovered"):
+            self.verified.add(str(out.get("repair_id")))
             self.severities[out.get("fault", "")] = int(out.get("severity_after", 0))
+        elif tool == "rollback_repair" and out.get("rolled_back"):
+            self.applied.discard(str(out.get("repair_id")))
 
 
 def _defaults(repair: str) -> dict[str, Any]:

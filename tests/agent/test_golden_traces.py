@@ -78,6 +78,13 @@ def test_guard_rules() -> None:
     assert not g.check("scan_camera", {"camera_id": "cam-02"}).allowed  # scoped
     assert not g.check("create_maintenance_ticket", {"incident_id": "inc_1", "fault_type": "x", "instructions": "y"}).allowed
     assert not g.check("rm_rf", {}).allowed
+    # a repair must be verified (by its real id) before the incident can be closed as auto_fixed
+    g.observe("apply_repair", {"applied": True, "repair_id": "rp_1"})
+    assert not g.check("verify_repair", {"camera_id": "cam-01", "repair_id": "dehaze"}).allowed
+    assert not g.check("close_incident", {"incident_id": "inc_1", "resolution": "auto_fixed"}).allowed
+    assert g.check("verify_repair", {"camera_id": "cam-01", "repair_id": "rp_1"}).allowed
+    g.observe("verify_repair", {"recovered": True, "repair_id": "rp_1", "fault": "haze", "severity_after": 0})
+    assert g.check("close_incident", {"incident_id": "inc_1", "resolution": "auto_fixed"}).allowed
 
 
 def test_approval_flow_creates_ticket_and_closes(fleet: Fleet, runner: AgentRunner) -> None:
