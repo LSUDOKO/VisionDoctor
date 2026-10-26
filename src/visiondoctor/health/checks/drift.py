@@ -46,7 +46,8 @@ def estimate_homography(
         return None, len(good), 0
     keep = inl.ravel().astype(bool)
     S, _ = cv2.estimateAffinePartial2D(src[keep], dst[keep], method=cv2.LMEDS)
-    if S is None:
+    scale = float(np.hypot(S[0, 0], S[1, 0])) if S is not None else 0.0
+    if S is None or not 0.5 <= scale <= 2.0:  # degenerate fit (e.g. all inliers on one blob)
         return None, len(good), 0
     return np.vstack([S, [0.0, 0.0, 1.0]]), len(good), int(keep.sum())
 

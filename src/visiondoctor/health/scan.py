@@ -52,6 +52,8 @@ def _drift_compensated(ctx: ScanContext, d: CheckResult) -> ScanContext:
     H = d.evidence.get("H")
     if d.severity < 1 or d.abstained or H is None or d.evidence.get("inlier_ratio", 0) < 0.25:
         return ctx
+    if abs(np.linalg.det(np.asarray(H))) < 1e-6:
+        return ctx
     Hinv = np.linalg.inv(np.asarray(H))
     h, w = ctx.frames[0].shape[:2]
     with timer("warpPerspective"):
