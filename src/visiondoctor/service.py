@@ -26,6 +26,7 @@ class FleetService:
         self.agents = ThreadPoolExecutor(max_workers=1, thread_name_prefix="agent")
         self._stop = threading.Event()
         self._next: dict[str, float] = {}
+        self._last_cw = 0.0
         self.thread = threading.Thread(target=self._loop, name="fleet-monitor", daemon=True)
         fleet.on_incident.append(self._enqueue)
 
@@ -67,3 +68,20 @@ class FleetService:
         accs = [c["predicted_ai_accuracy"] for c in cams if c.get("predicted_ai_accuracy") is not None]
         if accs:
             emit("PredictedFleetAccuracy", sum(accs) / len(accs), "None")
+        if self.fleet.cfg.backend == "aws" and time.time() - self._last_cw > 60:
+            self._last_cw = time.time()
+            self._put_cloudwatch(cams, accs)
+
+    def _put_cloudwatch(self, cams: list[dict], accs: list[float]) -> None:  # type: ignore[type-arg]
+        """Direct PutMetricData (lean deploy has no CloudWatch agent to collect EMF)."""
+        import boto3
+
+        data = [{"MetricName": f"Cameras{st.capitalize()}", "Value": float(sum(c.get("status") == st for c in cams))}
+                for st in ("healthy", "watch", "degraded", "failed")]
+        if accs:
+            data.append({"MetricName": "PredictedFleetAccuracy", "Value": sum(accs) / len(accs)})
+        try:
+            boto3.client("cloudwatch", region_name=self.fleet.cfg.aws_region).put_metric_data(
+                Namespace="VisionDoctor", MetricData=data)
+        except Exception as e:  # noqa: BLE001 - metrics must never stop the monitor
+            log.warning("cloudwatch_put_failed", error=str(e)[:200])
