@@ -104,6 +104,8 @@ Seeds are fixed (7). Frozen outputs used by the report are copied to `results/fi
 ## Live deployment
 
 **https://djekr86y464c8.cloudfront.net** (Cognito sign-in; judge credentials are in the private submission notes).
+
+![live AWS dashboard](docs/img/live_aws_dashboard.png)
 It is the credit-friendly *lean* profile (`infra/stacks/lean_stack.py`, ~$1.3/day): one Graviton4 `c8g.large`
 (Ubuntu 24.04 + official OpenCV 5.0 wheel) behind CloudFront (origin reachable only from CloudFront's prefix list),
 S3 + DynamoDB, Cognito, SNS alerts, CloudWatch metrics and dashboard, AWS Budgets alerts. The agent runs on Amazon
