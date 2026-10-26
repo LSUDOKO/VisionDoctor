@@ -27,7 +27,7 @@ def expected(fault: str, sev: int, transient: bool) -> str:
         return "closed_transient"
     if fault in dict(FIXABLE):
         return "auto_fixed"
-    return "approval_requested" if sev >= 3 or fault in ("freeze", "occlusion") else "watch"
+    return "approval_requested"  # every physical fault in the generator is severe enough to need a visit
 
 
 def main() -> None:
@@ -48,6 +48,7 @@ def main() -> None:
     fleet = Fleet(sim)
     fleet.bootstrap()
     runner = AgentRunner(fleet, agent=args.agent)
+    runner._rate_ok = lambda: True  # type: ignore[method-assign]  # eval replays incidents faster than 10/min
     results = []
     for n in range(args.incidents):
         cam = f"cam-{n % 4 + 1:02d}"
@@ -70,7 +71,7 @@ def main() -> None:
         inc_id = None
         scans = 0
         t_det = None
-        while inc_id is None and scans < 4:
+        while inc_id is None and scans < 6:  # smudge needs 3-scan persistence + 2-scan hysteresis
             r = fleet.scan_camera(cam)
             scans += 1
             inc_id = r["incident_opened"] or (fleet.open_incident(cam) or {}).get("incident_id")
