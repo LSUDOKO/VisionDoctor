@@ -65,7 +65,8 @@ Requires Python 3.12, `uv`, Node 22, ~3 GB disk.
 ```bash
 make setup          # venv + pinned deps (requirements.lock, hashes) incl. opencv-python-headless==5.0.0.93
 make models data    # YOLOX + YuNet ONNX (OpenCV zoo), MOT17 videos + labels, OpenCV vtest
-make test           # pytest: health, repairs, impact, privacy, golden agent traces, API
+make test           # pytest: 77 tests — health, repairs, impact, privacy, golden agent traces, API
+                    # (agent tests use a real-time simulator clock; on a heavily loaded machine one can flake)
 make web            # build the dashboard into web/dist
 make demo           # API + monitor + dashboard on http://localhost:8000
 ```
