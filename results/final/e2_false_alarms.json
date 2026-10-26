@@ -1,0 +1,124 @@
+{
+  "stride_frames": 6,
+  "videos": {
+    "MOT17-02": {
+      "day": {
+        "scans": 58,
+        "faulty_scans": 50,
+        "incidents_no_hysteresis": 50,
+        "incidents_hysteresis2": 3,
+        "false_incidents_per_cam_day_h2": 74.48,
+        "false_incidents_per_cam_day_h1": 1241.38
+      },
+      "day_night_buckets": {
+        "scans": 58,
+        "faulty_scans": 32,
+        "incidents_no_hysteresis": 32,
+        "incidents_hysteresis2": 5,
+        "false_incidents_per_cam_day_h2": 124.14,
+        "false_incidents_per_cam_day_h1": 794.48
+      },
+      "day_night_single_ref": {
+        "scans": 58,
+        "faulty_scans": 54,
+        "incidents_no_hysteresis": 54,
+        "incidents_hysteresis2": 3,
+        "false_incidents_per_cam_day_h2": 74.48,
+        "false_incidents_per_cam_day_h1": 1340.69
+      }
+    },
+    "MOT17-04": {
+      "day": {
+        "scans": 133,
+        "faulty_scans": 9,
+        "incidents_no_hysteresis": 9,
+        "incidents_hysteresis2": 3,
+        "false_incidents_per_cam_day_h2": 32.48,
+        "false_incidents_per_cam_day_h1": 97.44
+      },
+      "day_night_buckets": {
+        "scans": 133,
+        "faulty_scans": 45,
+        "incidents_no_hysteresis": 45,
+        "incidents_hysteresis2": 7,
+        "false_incidents_per_cam_day_h2": 75.79,
+        "false_incidents_per_cam_day_h1": 487.22
+      },
+      "day_night_single_ref": {
+        "scans": 133,
+        "faulty_scans": 65,
+        "incidents_no_hysteresis": 65,
+        "incidents_hysteresis2": 8,
+        "false_incidents_per_cam_day_h2": 86.62,
+        "false_incidents_per_cam_day_h1": 703.76
+      }
+    },
+    "MOT17-09": {
+      "day": {
+        "scans": 46,
+        "faulty_scans": 0,
+        "incidents_no_hysteresis": 0,
+        "incidents_hysteresis2": 0,
+        "false_incidents_per_cam_day_h2": 0.0,
+        "false_incidents_per_cam_day_h1": 0.0
+      },
+      "day_night_buckets": {
+        "scans": 46,
+        "faulty_scans": 0,
+        "incidents_no_hysteresis": 0,
+        "incidents_hysteresis2": 0,
+        "false_incidents_per_cam_day_h2": 0.0,
+        "false_incidents_per_cam_day_h1": 0.0
+      },
+      "day_night_single_ref": {
+        "scans": 46,
+        "faulty_scans": 20,
+        "incidents_no_hysteresis": 20,
+        "incidents_hysteresis2": 2,
+        "false_incidents_per_cam_day_h2": 62.61,
+        "false_incidents_per_cam_day_h1": 626.09
+      }
+    },
+    "vtest": {
+      "day": {
+        "scans": 91,
+        "faulty_scans": 0,
+        "incidents_no_hysteresis": 0,
+        "incidents_hysteresis2": 0,
+        "false_incidents_per_cam_day_h2": 0.0,
+        "false_incidents_per_cam_day_h1": 0.0
+      },
+      "day_night_buckets": {
+        "scans": 91,
+        "faulty_scans": 5,
+        "incidents_no_hysteresis": 5,
+        "incidents_hysteresis2": 1,
+        "false_incidents_per_cam_day_h2": 15.82,
+        "false_incidents_per_cam_day_h1": 79.12
+      },
+      "day_night_single_ref": {
+        "scans": 91,
+        "faulty_scans": 41,
+        "incidents_no_hysteresis": 41,
+        "incidents_hysteresis2": 4,
+        "false_incidents_per_cam_day_h2": 63.3,
+        "false_incidents_per_cam_day_h1": 648.79
+      }
+    }
+  },
+  "pooled_day": {
+    "scans": 328,
+    "per_cam_day_h2": 26.34,
+    "per_cam_day_h1": 259.02
+  },
+  "pooled_day_night_buckets": {
+    "scans": 328,
+    "per_cam_day_h2": 57.07,
+    "per_cam_day_h1": 360.0
+  },
+  "pooled_day_night_single_ref": {
+    "scans": 328,
+    "per_cam_day_h2": 74.63,
+    "per_cam_day_h1": 790.24
+  }
+}
