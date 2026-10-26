@@ -1,0 +1,14 @@
+.git
+.venv
+**/.venv
+infra
+data
+models
+results
+vd_state
+web/node_modules
+web/dist
+**/__pycache__
+.pytest_cache
+.mypy_cache
+.ruff_cache
