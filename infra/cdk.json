@@ -1,0 +1,10 @@
+{
+  "app": "python3 app.py",
+  "context": {
+    "region": "us-east-1",
+    "coolInstanceType": "c8g.2xlarge",
+    "vlmInstanceType": "m8g.4xlarge",
+    "alertEmail": "",
+    "@aws-cdk/aws-iam:minimizePolicies": true
+  }
+}
