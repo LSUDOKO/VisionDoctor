@@ -92,8 +92,7 @@ def predict_impact(
     x = feature_vector(report, sig)
     pred = get_predictor()
     if pred is None:
-        worst = max((c.severity for c in report.checks.values()), default=0)
-        m = lo = hi = max(0.0, 1.0 - 0.15 * worst)
+        m = lo = hi = 0.25 + 0.75 * report.overall_score  # untrained fallback: monotone in health
         model = "heuristic"
     else:
         mm, ll, hh = pred.predict(x)
