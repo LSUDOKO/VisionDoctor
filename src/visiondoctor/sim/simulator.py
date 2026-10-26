@@ -61,7 +61,7 @@ class FleetSimulator:
         self.rng = np.random.default_rng(seed)
         # MOT17-02 (dense crowd at dusk) gives too few static keypoints for drift at 640 px;
         # it stays in the offline evaluation as a documented failure case.
-        names = sources_list or [n for n in sources.available() if n != "MOT17-02"] + ["synthetic"]
+        names = sources_list or [n for n in sources.available() if n != "MOT17-02"] or ["synthetic"]
         self.buffers: dict[str, list[np.ndarray]] = {n: self._load(n, max_frames) for n in names}
         self.cameras: dict[str, SimCamera] = {}
         for i in range(cameras):
