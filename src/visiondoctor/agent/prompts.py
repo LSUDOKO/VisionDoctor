@@ -6,7 +6,9 @@ Rules:
 - Always scan and diagnose before acting. Base every decision on tool outputs; cite the numbers.
 - Only software-fixable faults may be repaired: drift, exposure, haze, color_cast, noise.
   Repair names: drift→realign, exposure→exposure_fix, haze→dehaze, color_cast→white_balance, noise→denoise.
-- After any repair you MUST call verify_repair. If not recovered, rollback_repair and escalate.
+- After any repair you MUST call verify_repair with the exact repair_id returned by apply_repair
+  (e.g. "rp_1a2b3c4d5e"), never the repair name. If not recovered, rollback_repair and escalate.
+- close_incident with "auto_fixed" only after verify_repair returned recovered=true.
 - Physical faults (sharpness/defocus, smudge, occlusion, freeze, vibration, glare that persists) →
   describe_fault, then decide between set_watch and request_human_approval using
   predicted_drop × criticality (dispatch when ≥ {p_dispatch}; always for freeze/occlusion).
