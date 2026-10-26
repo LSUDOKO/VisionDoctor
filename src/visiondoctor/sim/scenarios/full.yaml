@@ -1,0 +1,17 @@
+# Longer evaluation run (docs/06 §2): every fault family once, plus transients.
+seed: 7
+cameras: 12
+fps: 2
+events:
+  - {t: 60,  camera: cam-03, fault: drift,        severity: 4}
+  - {t: 120, camera: cam-07, fault: haze,         severity: 3}
+  - {t: 180, camera: cam-01, fault: smudge,       severity: 3}
+  - {t: 240, camera: cam-10, fault: occlusion,    severity: 5}
+  - {t: 300, camera: cam-05, fault: freeze,       severity: 5}
+  - {t: 360, camera: cam-08, fault: glare,        severity: 2, duration_s: 20}
+  - {t: 420, camera: cam-02, fault: color_cast,   severity: 4}
+  - {t: 480, camera: cam-04, fault: noise,        severity: 2}
+  - {t: 540, camera: cam-09, fault: defocus,      severity: 3}
+  - {t: 600, camera: cam-12, fault: vibration,    severity: 4}
+  - {t: 660, camera: cam-06, fault: ir_cut_stuck, severity: 3}
+  - {t: 720, camera: cam-11, fault: exposure,     severity: 3, direction: -1}

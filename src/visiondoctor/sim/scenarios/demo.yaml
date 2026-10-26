@@ -1,0 +1,13 @@
+# Judge demo (docs/07 §3). Times are seconds after the scenario starts.
+seed: 7
+cameras: 12
+fps: 2
+events:
+  - {t: 5,   camera: cam-03, fault: drift,     severity: 4}
+  - {t: 10,  camera: cam-07, fault: haze,      severity: 3}
+  - {t: 15,  camera: cam-01, fault: smudge,    severity: 4}
+  - {t: 20,  camera: cam-10, fault: occlusion, severity: 4}
+  - {t: 25,  camera: cam-05, fault: freeze,    severity: 5}
+  - {t: 30,  camera: cam-08, fault: glare,     severity: 3, duration_s: 6}   # transient
+  - {t: 35,  camera: cam-11, fault: exposure,  severity: 3, direction: -1}
+  - {t: 40,  camera: cam-06, fault: drift,     severity: 5, sign: -1}
