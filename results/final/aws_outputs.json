@@ -1,0 +1,17 @@
+{
+  "ExportsOutputFnGetAttThealthreportsBD1447DEArn1CB0C5B4": "arn:aws:dynamodb:ap-south-1:941089721992:table/visiondoctor-health_reports",
+  "ExportsOutputRefMediaA721A567DB895657": "vddata-mediaa721a567-qn5gh1bq9fvw",
+  "ExportsOutputFnGetAttTincidents029E83D1ArnACD61E22": "arn:aws:dynamodb:ap-south-1:941089721992:table/visiondoctor-incidents",
+  "ExportsOutputFnGetAttTticketsA1E5DF62Arn40D4413B": "arn:aws:dynamodb:ap-south-1:941089721992:table/visiondoctor-tickets",
+  "ExportsOutputFnGetAttTtracesA31FBA60Arn0C05FD73": "arn:aws:dynamodb:ap-south-1:941089721992:table/visiondoctor-traces",
+  "ExportsOutputFnGetAttTcameras375132B8Arn401C2BFF": "arn:aws:dynamodb:ap-south-1:941089721992:table/visiondoctor-cameras",
+  "ExportsOutputFnGetAttTapprovals168AE700Arn1297111C": "arn:aws:dynamodb:ap-south-1:941089721992:table/visiondoctor-approvals",
+  "ExportsOutputFnGetAttTprofiles94AC412FArn094484F1": "arn:aws:dynamodb:ap-south-1:941089721992:table/visiondoctor-profiles",
+  "ExportsOutputFnGetAttMediaA721A567ArnB9989168": "arn:aws:s3:::vddata-mediaa721a567-qn5gh1bq9fvw",
+  "ExportsOutputRefUsersDashboard7EAF41D05B950A61": "2alcccjjhb6osb3ggcr050ooq2",
+  "UserPoolId": "ap-south-1_yLPMkWeiY",
+  "ClientId": "2alcccjjhb6osb3ggcr050ooq2",
+  "ExportsOutputRefUsers0A0EEA89A1309EA5": "ap-south-1_yLPMkWeiY",
+  "InstanceId": "i-0838c48bf334dd4db",
+  "Url": "https://djekr86y464c8.cloudfront.net"
+}

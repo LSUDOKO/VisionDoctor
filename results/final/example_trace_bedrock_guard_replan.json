@@ -1,0 +1,90 @@
+{
+  "model": "apac.amazon.nova-lite-v1:0",
+  "incident_id": "inc_635bb1816d",
+  "tokens_out": 346,
+  "started": 1793043079.606613,
+  "trace_id": "tr_90fbc61f461e",
+  "tokens_in": 17906,
+  "camera_id": "cam-03",
+  "agent": "bedrock",
+  "steps": [
+    {
+      "changed_plan": false,
+      "decision_reason": "<thinking>I need to start by scanning the camera to diagnose the fault. This will give me the information needed to decide the next steps.</thinking>",
+      "guard": "allowed",
+      "i": 1,
+      "input": {
+        "camera_id": "cam-03"
+      },
+      "latency_ms": 2878.5,
+      "output_summary": "drift sev4: matches=955, inliers=933, inlier_ratio=0.977",
+      "tool": "scan_camera"
+    },
+    {
+      "changed_plan": false,
+      "decision_reason": "<thinking>The scan has identified a drift fault with a severity of 4. I will diagnose this fault to get more details and decide on the appropriate repair.</thinking>",
+      "guard": "allowed",
+      "i": 2,
+      "input": {
+        "camera_id": "cam-03"
+      },
+      "latency_ms": 3.7,
+      "output_summary": "faults ['drift']; fixable ['drift\u2192realign']; cause: camera mount or PTZ preset moved",
+      "tool": "diagnose"
+    },
+    {
+      "changed_plan": false,
+      "decision_reason": "<thinking>The diagnosis confirms a drift fault that can be fixed with a realign repair. I will apply the repair and verify if it resolves the issue.</thinking>",
+      "guard": "allowed",
+      "i": 3,
+      "input": {
+        "camera_id": "cam-03",
+        "repair": "realign"
+      },
+      "latency_ms": 14.5,
+      "output_summary": "realign applied (rp_3233be2b9c), params {'H': [[0.9959, -0.0871, -2.4575], [0.0871, 0.9959, -38.6335], [0.0, 0.0, 1.0]], 'rot_deg': 4.9958, 'disp_pct_diag': 5.1815, 'inlier_ratio': 0.977}",
+      "tool": "apply_repair"
+    },
+    {
+      "changed_plan": false,
+      "decision_reason": "<thinking>The diagnosis confirms a drift fault that can be fixed with a realign repair. I will apply the repair and verify if it resolves the issue.</thinking>",
+      "guard": "blocked: unknown repair_id 'apply_repair'; applied in this run: ['rp_3233be2b9c']",
+      "i": 4,
+      "input": {
+        "camera_id": "cam-03",
+        "repair_id": "apply_repair"
+      },
+      "latency_ms": 0,
+      "output_summary": "blocked_by_guard: unknown repair_id 'apply_repair'; applied in this run: ['rp_3233be2b9c']",
+      "tool": "verify_repair"
+    },
+    {
+      "changed_plan": false,
+      "decision_reason": "<thinking>The repair was applied but verification is blocked. I will use the correct repair_id from the apply_repair result to verify the repair.</thinking>",
+      "guard": "allowed",
+      "i": 5,
+      "input": {
+        "camera_id": "cam-03",
+        "repair_id": "rp_3233be2b9c"
+      },
+      "latency_ms": 3252.3,
+      "output_summary": "drift sev 4\u21920, pred acc 0.063\u21920.923 \u2014 recovered",
+      "tool": "verify_repair"
+    },
+    {
+      "changed_plan": false,
+      "decision_reason": "<thinking>The drift fault has been successfully fixed, as indicated by the verification. I will close the incident with the resolution 'auto_fixed'.</thinking>",
+      "guard": "allowed",
+      "i": 6,
+      "input": {
+        "incident_id": "inc_635bb1816d",
+        "resolution": "auto_fixed"
+      },
+      "latency_ms": 8.7,
+      "output_summary": "ok=True, incident_id=inc_635bb1816d, state=repaired",
+      "tool": "close_incident"
+    }
+  ],
+  "outcome": "auto_fixed",
+  "total_ms": 9937
+}
