@@ -127,7 +127,44 @@ def main() -> None:
     if args.transport == "stdio":
         server.run("stdio")
     else:
-        server.run("streamable-http", host=args.host, port=args.port)
+        import uvicorn
+
+        uvicorn.run(secured_http_app(server, _shared_secret()), host=args.host, port=args.port)
+
+
+def _shared_secret() -> str | None:
+    """Shared secret from env, or from Secrets Manager on AWS (VD_MCP_SECRET_ARN)."""
+    import os
+
+    if os.environ.get("VD_MCP_SHARED_SECRET"):
+        return os.environ["VD_MCP_SHARED_SECRET"]
+    arn = os.environ.get("VD_MCP_SECRET_ARN")
+    if arn:
+        import boto3
+
+        return str(boto3.client("secretsmanager").get_secret_value(SecretId=arn)["SecretString"])
+    return None
+
+
+def secured_http_app(server: MCPServer, secret: str | None) -> Any:
+    """Streamable-HTTP ASGI app; rejects requests without the ``x-vd-secret`` header when set."""
+    import hmac
+
+    from starlette.responses import JSONResponse
+
+    inner = server.streamable_http_app()
+    if not secret:
+        return inner
+
+    async def app(scope: dict[str, Any], receive: Any, send: Any) -> None:
+        if scope["type"] == "http":
+            got = dict(scope.get("headers") or []).get(b"x-vd-secret", b"").decode()
+            if not hmac.compare_digest(got, secret):
+                await JSONResponse({"error": "forbidden"}, status_code=403)(scope, receive, send)
+                return
+        await inner(scope, receive, send)
+
+    return app
 
 
 if __name__ == "__main__":
