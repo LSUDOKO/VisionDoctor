@@ -1,30 +1,30 @@
 {
   "agent": "policy",
   "incidents": 40,
-  "correct_outcome_rate": 0.8,
+  "correct_outcome_rate": 0.75,
   "correct_ci95": [
-    0.675,
-    0.925
+    0.625,
+    0.875
   ],
   "alarm_only_baseline_alerts": 40,
-  "agent_operator_alerts": 20,
-  "operator_workload_reduction": 0.5,
+  "agent_operator_alerts": 14,
+  "operator_workload_reduction": 0.65,
   "escalations_needed": 20,
-  "missed_escalations": 2,
-  "unnecessary_escalations": 2,
-  "auto_fixed": 7,
-  "mean_steps": 5.1,
-  "mean_agent_ms": 1035.8,
-  "scans_to_detect_mean": 2.15,
+  "missed_escalations": 7,
+  "unnecessary_escalations": 1,
+  "auto_fixed": 10,
+  "mean_steps": 4.88,
+  "mean_agent_ms": 1109.9,
+  "scans_to_detect_mean": 2.11,
   "trace_completeness": 1.0,
   "confusion": {
-    "closed_transient->closed_transient": 7,
-    "approval_requested->watch": 1,
-    "approval_requested->approval_requested": 18,
-    "approval_requested->missed": 1,
-    "auto_fixed->watch": 4,
-    "auto_fixed->auto_fixed": 7,
-    "auto_fixed->approval_requested": 2
+    "auto_fixed->auto_fixed": 10,
+    "auto_fixed->approval_requested": 1,
+    "auto_fixed->watch": 2,
+    "approval_requested->approval_requested": 13,
+    "approval_requested->watch": 5,
+    "approval_requested->missed": 2,
+    "closed_transient->closed_transient": 7
   },
   "rows": [
     {
@@ -32,13 +32,13 @@
       "severity": 3,
       "transient": false,
       "expected": "auto_fixed",
-      "outcome": "watch",
-      "steps": 9,
-      "total_ms": 1389.4,
+      "outcome": "approval_requested",
+      "steps": 8,
+      "total_ms": 1551.0,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_c237b9670270"
+      "trace_id": "tr_1268febd97c9"
     },
     {
       "fault": "smudge",
@@ -55,11 +55,11 @@
       "expected": "closed_transient",
       "outcome": "closed_transient",
       "steps": 2,
-      "total_ms": 776.5,
+      "total_ms": 611.6,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_25a30c8e51b4"
+      "trace_id": "tr_eaa63f5733b8"
     },
     {
       "fault": "occlusion",
@@ -68,11 +68,11 @@
       "expected": "approval_requested",
       "outcome": "approval_requested",
       "steps": 5,
-      "total_ms": 718.4,
+      "total_ms": 729.4,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_dd21cf2a89c4"
+      "trace_id": "tr_e4999d908655"
     },
     {
       "fault": "glare",
@@ -81,11 +81,11 @@
       "expected": "closed_transient",
       "outcome": "closed_transient",
       "steps": 2,
-      "total_ms": 691.3,
+      "total_ms": 538.7,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_dd72a321f85b"
+      "trace_id": "tr_f81cf961b3a2"
     },
     {
       "fault": "noise",
@@ -94,11 +94,11 @@
       "expected": "auto_fixed",
       "outcome": "auto_fixed",
       "steps": 6,
-      "total_ms": 3494.0,
+      "total_ms": 2835.3,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_99dfb5812968"
+      "trace_id": "tr_8aeb196a4569"
     },
     {
       "fault": "glare",
@@ -107,24 +107,24 @@
       "expected": "closed_transient",
       "outcome": "closed_transient",
       "steps": 2,
-      "total_ms": 766.2,
+      "total_ms": 615.1,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_aee6427c7b47"
+      "trace_id": "tr_90530f2b4541"
     },
     {
       "fault": "vibration",
       "severity": 3,
       "transient": false,
       "expected": "approval_requested",
-      "outcome": "approval_requested",
-      "steps": 5,
-      "total_ms": 875.3,
+      "outcome": "watch",
+      "steps": 6,
+      "total_ms": 847.0,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_20e1c1285dfe"
+      "trace_id": "tr_0d15bbdf4b20"
     },
     {
       "fault": "defocus",
@@ -133,24 +133,24 @@
       "expected": "approval_requested",
       "outcome": "approval_requested",
       "steps": 5,
-      "total_ms": 692.2,
+      "total_ms": 729.1,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_0310894ef2f4"
+      "trace_id": "tr_c57d35b6574b"
     },
     {
       "fault": "smudge",
       "severity": 5,
       "transient": false,
       "expected": "approval_requested",
-      "outcome": "approval_requested",
-      "steps": 5,
-      "total_ms": 868.2,
+      "outcome": "watch",
+      "steps": 6,
+      "total_ms": 985.7,
       "guard_blocks": 0,
       "scans_to_detect": 4,
       "trace_complete": true,
-      "trace_id": "tr_1e5cc899fb7d"
+      "trace_id": "tr_c577ddb0010f"
     },
     {
       "fault": "freeze",
@@ -159,11 +159,11 @@
       "expected": "approval_requested",
       "outcome": "approval_requested",
       "steps": 5,
-      "total_ms": 766.5,
+      "total_ms": 862.0,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_77c5e01685f6"
+      "trace_id": "tr_d4db41734e20"
     },
     {
       "fault": "glare",
@@ -172,11 +172,11 @@
       "expected": "closed_transient",
       "outcome": "closed_transient",
       "steps": 2,
-      "total_ms": 696.6,
+      "total_ms": 575.2,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_e92a9f03b2f9"
+      "trace_id": "tr_2056493ecc73"
     },
     {
       "fault": "occlusion",
@@ -185,11 +185,11 @@
       "expected": "approval_requested",
       "outcome": "approval_requested",
       "steps": 5,
-      "total_ms": 711.4,
+      "total_ms": 723.8,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_6197378fc2e1"
+      "trace_id": "tr_b3826532097e"
     },
     {
       "fault": "occlusion",
@@ -198,11 +198,11 @@
       "expected": "approval_requested",
       "outcome": "approval_requested",
       "steps": 5,
-      "total_ms": 747.9,
+      "total_ms": 788.5,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_3669ddf5c35c"
+      "trace_id": "tr_715fa49112e8"
     },
     {
       "fault": "glare",
@@ -211,11 +211,11 @@
       "expected": "closed_transient",
       "outcome": "closed_transient",
       "steps": 2,
-      "total_ms": 776.7,
+      "total_ms": 623.6,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_5f411c56b731"
+      "trace_id": "tr_bbea45e50d9c"
     },
     {
       "fault": "defocus",
@@ -224,11 +224,11 @@
       "expected": "approval_requested",
       "outcome": "approval_requested",
       "steps": 5,
-      "total_ms": 663.0,
+      "total_ms": 702.0,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_760913defce1"
+      "trace_id": "tr_878abc966da9"
     },
     {
       "fault": "haze",
@@ -237,11 +237,11 @@
       "expected": "auto_fixed",
       "outcome": "watch",
       "steps": 9,
-      "total_ms": 1451.5,
+      "total_ms": 1531.0,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_de501ed814df"
+      "trace_id": "tr_b672b4842ac3"
     },
     {
       "fault": "defocus",
@@ -250,37 +250,32 @@
       "expected": "approval_requested",
       "outcome": "approval_requested",
       "steps": 5,
-      "total_ms": 706.4,
+      "total_ms": 722.5,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_1439cae4fab5"
+      "trace_id": "tr_7f43555aaf9c"
     },
     {
       "fault": "exposure",
       "severity": 4,
       "transient": false,
       "expected": "auto_fixed",
-      "outcome": "watch",
-      "steps": 9,
-      "total_ms": 1534.5,
+      "outcome": "auto_fixed",
+      "steps": 6,
+      "total_ms": 1639.3,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_04d5ae4efb37"
+      "trace_id": "tr_975686db0c76"
     },
     {
       "fault": "smudge",
       "severity": 5,
       "transient": false,
       "expected": "approval_requested",
-      "outcome": "approval_requested",
-      "steps": 5,
-      "total_ms": 831.5,
-      "guard_blocks": 0,
-      "scans_to_detect": 4,
-      "trace_complete": true,
-      "trace_id": "tr_3ecab0fc51ab"
+      "outcome": "missed",
+      "scans_to_detect": null
     },
     {
       "fault": "color_cast",
@@ -289,11 +284,11 @@
       "expected": "auto_fixed",
       "outcome": "auto_fixed",
       "steps": 6,
-      "total_ms": 1380.0,
+      "total_ms": 1521.5,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_96fd829801e8"
+      "trace_id": "tr_7f60735151ab"
     },
     {
       "fault": "freeze",
@@ -302,11 +297,11 @@
       "expected": "approval_requested",
       "outcome": "approval_requested",
       "steps": 5,
-      "total_ms": 692.8,
+      "total_ms": 745.5,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_c7a7c36728cc"
+      "trace_id": "tr_a84109e042a3"
     },
     {
       "fault": "glare",
@@ -315,11 +310,11 @@
       "expected": "closed_transient",
       "outcome": "closed_transient",
       "steps": 2,
-      "total_ms": 768.8,
+      "total_ms": 596.9,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_8adb4a3bb034"
+      "trace_id": "tr_63e245cbcbe7"
     },
     {
       "fault": "occlusion",
@@ -328,24 +323,24 @@
       "expected": "approval_requested",
       "outcome": "approval_requested",
       "steps": 5,
-      "total_ms": 716.8,
+      "total_ms": 713.4,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_11a36dfaebf5"
+      "trace_id": "tr_e73486811493"
     },
     {
       "fault": "drift",
       "severity": 4,
       "transient": false,
       "expected": "auto_fixed",
-      "outcome": "approval_requested",
-      "steps": 8,
-      "total_ms": 1547.1,
+      "outcome": "auto_fixed",
+      "steps": 6,
+      "total_ms": 1654.7,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_6dacbc9cf0cb"
+      "trace_id": "tr_8695036ab8a2"
     },
     {
       "fault": "haze",
@@ -354,11 +349,11 @@
       "expected": "auto_fixed",
       "outcome": "auto_fixed",
       "steps": 6,
-      "total_ms": 1460.3,
+      "total_ms": 1643.2,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_938cc051b651"
+      "trace_id": "tr_136acd9d2018"
     },
     {
       "fault": "color_cast",
@@ -367,11 +362,11 @@
       "expected": "auto_fixed",
       "outcome": "watch",
       "steps": 9,
-      "total_ms": 1626.7,
+      "total_ms": 1753.9,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_f539134e0340"
+      "trace_id": "tr_b43327a5c1d6"
     },
     {
       "fault": "freeze",
@@ -380,24 +375,24 @@
       "expected": "approval_requested",
       "outcome": "approval_requested",
       "steps": 5,
-      "total_ms": 661.5,
+      "total_ms": 712.6,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_eff370e04fad"
+      "trace_id": "tr_00a3ae868af8"
     },
     {
       "fault": "smudge",
       "severity": 3,
       "transient": false,
       "expected": "approval_requested",
-      "outcome": "approval_requested",
-      "steps": 5,
-      "total_ms": 778.9,
+      "outcome": "watch",
+      "steps": 6,
+      "total_ms": 1039.7,
       "guard_blocks": 0,
       "scans_to_detect": 4,
       "trace_complete": true,
-      "trace_id": "tr_527ae1e5d866"
+      "trace_id": "tr_5468700366e0"
     },
     {
       "fault": "freeze",
@@ -406,11 +401,11 @@
       "expected": "approval_requested",
       "outcome": "approval_requested",
       "steps": 5,
-      "total_ms": 702.6,
+      "total_ms": 806.6,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_81c1fad74022"
+      "trace_id": "tr_f01dd0394922"
     },
     {
       "fault": "color_cast",
@@ -419,24 +414,24 @@
       "expected": "auto_fixed",
       "outcome": "auto_fixed",
       "steps": 6,
-      "total_ms": 1562.9,
+      "total_ms": 1746.9,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_d68b39eb12c4"
+      "trace_id": "tr_df22a97381f1"
     },
     {
       "fault": "color_cast",
       "severity": 4,
       "transient": false,
       "expected": "auto_fixed",
-      "outcome": "approval_requested",
-      "steps": 8,
-      "total_ms": 1443.2,
+      "outcome": "auto_fixed",
+      "steps": 6,
+      "total_ms": 1832.9,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_38fc8c058c51"
+      "trace_id": "tr_8f36aeacb9ee"
     },
     {
       "fault": "drift",
@@ -445,11 +440,11 @@
       "expected": "auto_fixed",
       "outcome": "auto_fixed",
       "steps": 6,
-      "total_ms": 1589.1,
+      "total_ms": 1898.2,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_81d188f888ae"
+      "trace_id": "tr_2cf55c8a5917"
     },
     {
       "fault": "glare",
@@ -458,11 +453,11 @@
       "expected": "closed_transient",
       "outcome": "closed_transient",
       "steps": 2,
-      "total_ms": 685.4,
+      "total_ms": 569.8,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_5d11b031f71c"
+      "trace_id": "tr_0a3ce7d67017"
     },
     {
       "fault": "defocus",
@@ -471,24 +466,24 @@
       "expected": "approval_requested",
       "outcome": "watch",
       "steps": 6,
-      "total_ms": 751.5,
+      "total_ms": 790.8,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_4b840f0810a2"
+      "trace_id": "tr_dd27397abc75"
     },
     {
       "fault": "defocus",
       "severity": 2,
       "transient": false,
       "expected": "approval_requested",
-      "outcome": "approval_requested",
-      "steps": 5,
-      "total_ms": 656.3,
+      "outcome": "watch",
+      "steps": 6,
+      "total_ms": 724.4,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_a7f8eb2c7c0a"
+      "trace_id": "tr_16a00380c410"
     },
     {
       "fault": "color_cast",
@@ -497,11 +492,11 @@
       "expected": "auto_fixed",
       "outcome": "auto_fixed",
       "steps": 6,
-      "total_ms": 1370.2,
+      "total_ms": 1589.9,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_493a477bc28f"
+      "trace_id": "tr_5c2785045835"
     },
     {
       "fault": "exposure",
@@ -510,11 +505,11 @@
       "expected": "auto_fixed",
       "outcome": "auto_fixed",
       "steps": 6,
-      "total_ms": 1373.3,
+      "total_ms": 1985.6,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_8c1be5c47d12"
+      "trace_id": "tr_01e92e903b5e"
     },
     {
       "fault": "freeze",
@@ -523,11 +518,11 @@
       "expected": "approval_requested",
       "outcome": "approval_requested",
       "steps": 5,
-      "total_ms": 776.5,
+      "total_ms": 1262.9,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_579d6881c58d"
+      "trace_id": "tr_e9195e0deea1"
     },
     {
       "fault": "defocus",
@@ -536,11 +531,11 @@
       "expected": "approval_requested",
       "outcome": "approval_requested",
       "steps": 5,
-      "total_ms": 696.2,
+      "total_ms": 974.9,
       "guard_blocks": 0,
       "scans_to_detect": 2,
       "trace_complete": true,
-      "trace_id": "tr_c5d5fa41fc0f"
+      "trace_id": "tr_a2046e55472e"
     }
   ]
 }

@@ -67,9 +67,9 @@ Max residual rotation after realign: 0.0°.
 
 ## E5 — agent quality, policy (`results/e5/agent_policy.json`)
 
-Incidents: 40. Correct outcome: **0.8** (95% CI [0.675, 0.925]). Operator alerts: 20 vs 40 for alarm-only → workload reduction **0.5**. Auto-fixed: 7. Missed escalations: 2, unnecessary: 2. Mean steps 5.1, mean agent time 1035.8 ms, scans to detect 2.15, trace completeness 1.0.
+Incidents: 40. Correct outcome: **0.75** (95% CI [0.625, 0.875]). Operator alerts: 14 vs 40 for alarm-only → workload reduction **0.65**. Auto-fixed: 10. Missed escalations: 7, unnecessary: 1. Mean steps 4.88, mean agent time 1109.9 ms, scans to detect 2.11, trace completeness 1.0.
 
-Confusion (expected→outcome): closed_transient->closed_transient: 7, approval_requested->watch: 1, approval_requested->approval_requested: 18, approval_requested->missed: 1, auto_fixed->watch: 4, auto_fixed->auto_fixed: 7, auto_fixed->approval_requested: 2
+Confusion (expected→outcome): auto_fixed->auto_fixed: 10, auto_fixed->approval_requested: 1, auto_fixed->watch: 2, approval_requested->approval_requested: 13, approval_requested->watch: 5, approval_requested->missed: 2, closed_transient->closed_transient: 7
 
 ## Threshold calibration (`results/calibration/thresholds.json`)
 

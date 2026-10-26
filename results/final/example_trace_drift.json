@@ -1,6 +1,6 @@
 {
-  "trace_id": "tr_81d188f888ae",
-  "incident_id": "inc_cbacd9ebe5",
+  "trace_id": "tr_8695036ab8a2",
+  "incident_id": "inc_5040d36042",
   "camera_id": "cam-01",
   "agent": "policy",
   "model": null,
@@ -11,9 +11,9 @@
       "input": {
         "camera_id": "cam-01"
       },
-      "output_summary": "drift sev4: matches=426, inliers=418, inlier_ratio=0.981",
+      "output_summary": "drift sev4: matches=427, inliers=412, inlier_ratio=0.965",
       "decision_reason": "always re-scan before acting",
-      "latency_ms": 866.5,
+      "latency_ms": 826.5,
       "guard": "allowed",
       "changed_plan": false
     },
@@ -25,7 +25,7 @@
       },
       "output_summary": "faults ['drift']; fixable ['drift\u2192realign']; cause: camera mount or PTZ preset moved",
       "decision_reason": "faults ['drift']: localise and check fixability",
-      "latency_ms": 0.6,
+      "latency_ms": 0.9,
       "guard": "allowed",
       "changed_plan": false
     },
@@ -35,9 +35,9 @@
       "input": {
         "camera_id": "cam-01"
       },
-      "output_summary": "predicted accuracy 0.302 (drop 0.698, 90% CI [0.009, 0.744])",
+      "output_summary": "predicted accuracy 0.249 (drop 0.751, 90% CI [0.004, 0.748])",
       "decision_reason": "quantify harm to the downstream detector before choosing repair vs escalation",
-      "latency_ms": 0.4,
+      "latency_ms": 0.6,
       "guard": "allowed",
       "changed_plan": false
     },
@@ -48,9 +48,9 @@
         "camera_id": "cam-01",
         "repair": "realign"
       },
-      "output_summary": "realign applied (rp_2abfd606eb), params {'H': [[0.9962, 0.087, 11.1997], [-0.087, 0.9962, 36.2542], [0.0, 0.0, 1.0]], 'rot_deg': -4.9938, 'disp_pct_diag': 5.4305, 'inlier_ratio': 0.9812}",
-      "decision_reason": "drift is software-fixable; predicted drop 0.70 justifies a bounded realign",
-      "latency_ms": 3.1,
+      "output_summary": "realign applied (rp_39d8da3e1d), params {'H': [[0.9966, 0.0868, 11.0753], [-0.0868, 0.9966, 35.8071], [0.0, 0.0, 1.0]], 'rot_deg': -4.9786, 'disp_pct_diag': 5.4158, 'inlier_ratio': 0.9649}",
+      "decision_reason": "drift is software-fixable; predicted drop 0.75 justifies a bounded realign",
+      "latency_ms": 3.5,
       "guard": "allowed",
       "changed_plan": false
     },
@@ -59,11 +59,11 @@
       "tool": "verify_repair",
       "input": {
         "camera_id": "cam-01",
-        "repair_id": "rp_2abfd606eb"
+        "repair_id": "rp_39d8da3e1d"
       },
-      "output_summary": "drift sev 4\u21920, pred acc 0.302\u21920.846 \u2014 recovered",
+      "output_summary": "drift sev 4\u21920, pred acc 0.249\u21920.836 \u2014 recovered",
       "decision_reason": "a repair only counts if re-scan and re-prediction recover",
-      "latency_ms": 716.3,
+      "latency_ms": 820.7,
       "guard": "allowed",
       "changed_plan": false
     },
@@ -71,19 +71,19 @@
       "i": 6,
       "tool": "close_incident",
       "input": {
-        "incident_id": "inc_cbacd9ebe5",
+        "incident_id": "inc_5040d36042",
         "resolution": "auto_fixed"
       },
-      "output_summary": "ok=True, incident_id=inc_cbacd9ebe5, state=repaired",
+      "output_summary": "ok=True, incident_id=inc_5040d36042, state=repaired",
       "decision_reason": "all faults repaired and verified by re-scan",
-      "latency_ms": 2.0,
+      "latency_ms": 2.3,
       "guard": "allowed",
       "changed_plan": false
     }
   ],
   "outcome": "auto_fixed",
-  "started": 1793033152.483997,
-  "total_ms": 1589.1,
+  "started": 1793038133.7261019,
+  "total_ms": 1654.7,
   "tokens_in": 0,
   "tokens_out": 0
 }

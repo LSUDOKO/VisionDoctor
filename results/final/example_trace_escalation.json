@@ -1,7 +1,7 @@
 {
-  "trace_id": "tr_dd21cf2a89c4",
-  "incident_id": "inc_d22b72a19c",
-  "camera_id": "cam-04",
+  "trace_id": "tr_1268febd97c9",
+  "incident_id": "inc_83c6b8129a",
+  "camera_id": "cam-01",
   "agent": "policy",
   "model": null,
   "steps": [
@@ -9,11 +9,11 @@
       "i": 1,
       "tool": "scan_camera",
       "input": {
-        "camera_id": "cam-04"
+        "camera_id": "cam-01"
       },
-      "output_summary": "occlusion sev3: occluded_frac=0.195, occluded_tiles=11, static_object_tiles=0",
+      "output_summary": "exposure sev4: mean_lum=208, ref_lum=132, lum_delta_rel=0.574",
       "decision_reason": "always re-scan before acting",
-      "latency_ms": 699.5,
+      "latency_ms": 738.8,
       "guard": "allowed",
       "changed_plan": false
     },
@@ -21,11 +21,11 @@
       "i": 2,
       "tool": "diagnose",
       "input": {
-        "camera_id": "cam-04"
+        "camera_id": "cam-01"
       },
-      "output_summary": "faults ['occlusion']; fixable []; cause: object or covering blocking the lens",
-      "decision_reason": "faults ['occlusion']: localise and check fixability",
-      "latency_ms": 0.7,
+      "output_summary": "faults ['exposure']; fixable ['exposure\u2192exposure_fix']; cause: iris/gain misconfiguration or lighting change",
+      "decision_reason": "faults ['exposure']: localise and check fixability",
+      "latency_ms": 1.0,
       "guard": "allowed",
       "changed_plan": false
     },
@@ -33,9 +33,9 @@
       "i": 3,
       "tool": "predict_ai_impact",
       "input": {
-        "camera_id": "cam-04"
+        "camera_id": "cam-01"
       },
-      "output_summary": "predicted accuracy 0.148 (drop 0.852, 90% CI [0.148, 0.368])",
+      "output_summary": "predicted accuracy 0.84 (drop 0.16, 90% CI [0.84, 0.967])",
       "decision_reason": "quantify harm to the downstream detector before choosing repair vs escalation",
       "latency_ms": 0.6,
       "guard": "allowed",
@@ -43,40 +43,74 @@
     },
     {
       "i": 4,
-      "tool": "describe_fault",
+      "tool": "apply_repair",
       "input": {
-        "camera_id": "cam-04",
-        "region_bbox": [
-          286,
-          99,
-          233,
-          261
-        ]
+        "camera_id": "cam-01",
+        "repair": "exposure_fix"
       },
-      "output_summary": "\"Something is blocking 20% of the view in the middle centre of the frame (tape, sign, foliage or object).\" [rule-based (VLM unavailable)]",
-      "decision_reason": "occlusion needs a human: describe it for the technician",
-      "latency_ms": 14.5,
+      "output_summary": "exposure_fix applied (rp_20b7ee176f), params {'alpha': 0.635, 'gamma': 1.0, 'clahe': False}",
+      "decision_reason": "exposure is software-fixable; predicted drop 0.16 justifies a bounded exposure_fix",
+      "latency_ms": 2.4,
+      "guard": "allowed",
+      "changed_plan": false
+    },
+    {
+      "i": 5,
+      "tool": "verify_repair",
+      "input": {
+        "camera_id": "cam-01",
+        "repair_id": "rp_20b7ee176f"
+      },
+      "output_summary": "exposure sev 4\u21920, pred acc 0.84\u21920.908 \u2014 NOT recovered",
+      "decision_reason": "a repair only counts if re-scan and re-prediction recover",
+      "latency_ms": 777.1,
+      "guard": "allowed",
+      "changed_plan": false
+    },
+    {
+      "i": 6,
+      "tool": "rollback_repair",
+      "input": {
+        "camera_id": "cam-01",
+        "repair_id": "rp_20b7ee176f"
+      },
+      "output_summary": "rolled_back=True, repair_id=rp_20b7ee176f, active_corrections=[]",
+      "decision_reason": "verification failed (sev 4\u21920): roll back",
+      "latency_ms": 4.2,
       "guard": "allowed",
       "changed_plan": true
     },
     {
-      "i": 5,
+      "i": 7,
+      "tool": "describe_fault",
+      "input": {
+        "camera_id": "cam-01",
+        "region_bbox": null
+      },
+      "output_summary": "\"Picture is over-exposed (luminance +57% vs normal); check iris/gain settings or lighting.\" [rule-based (VLM unavailable)]",
+      "decision_reason": "exposure needs a human: describe it for the technician",
+      "latency_ms": 21.8,
+      "guard": "allowed",
+      "changed_plan": true
+    },
+    {
+      "i": 8,
       "tool": "request_human_approval",
       "input": {
-        "incident_id": "inc_d22b72a19c",
+        "incident_id": "inc_83c6b8129a",
         "action": "dispatch_technician",
-        "reason": "occlusion sev3: predicted drop 0.85 \u00d7 criticality 2 = 1.70 \u2265 0.6. Something is blocking 20% of the view in the middle centre of the frame (tape, sign, foliage or object)."
+        "reason": "exposure sev4: predicted drop 0.16 \u00d7 criticality 4 = 0.64 \u2265 0.6. Picture is over-exposed (luminance +57% vs normal); check iris/gain settings or lighting."
       },
-      "output_summary": "approval apr_71cdbcbe87 pending",
-      "decision_reason": "priority 1.70 above dispatch threshold 0.6",
-      "latency_ms": 2.9,
+      "output_summary": "approval apr_e2d5c2b7f4 pending",
+      "decision_reason": "priority 0.64 above dispatch threshold 0.6",
+      "latency_ms": 4.7,
       "guard": "allowed",
       "changed_plan": false
     }
   ],
   "outcome": "approval_requested",
-  "started": 1793032986.0100455,
-  "total_ms": 718.4,
+  "started": 1793037993.710402,
+  "total_ms": 1551.0,
   "tokens_in": 0,
   "tokens_out": 0
 }
