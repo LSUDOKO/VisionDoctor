@@ -23,6 +23,9 @@ from visiondoctor.repair import FAULT_FOR_REPAIR, CorrectionProfile
 # noise by 1/t (judged by the impact predictor instead).
 SIDE_EFFECTS: dict[str, set[str]] = {"realign": {"occlusion", "exposure"}, "dehaze": {"noise"}}
 
+MATERIAL_LOSS = 0.15  # below this predicted loss, recovery is judged by "no harm" instead
+NOISE_TOLERANCE = 0.1  # ≈ impact predictor MAE (results/final/e3_impact.json)
+
 ImpactFn = Callable[[HealthReport, list[np.ndarray]], float]  # → predicted accuracy 0..1
 
 
@@ -77,6 +80,11 @@ def verify(
     if impact is not None:
         acc_a = impact(after, corrected)
         if acc_before is not None:
-            loss = max(1.0 - acc_before, 1e-6)
-            ok = ok and (acc_a - acc_before) >= 0.5 * loss
+            loss = 1.0 - acc_before
+            if loss >= MATERIAL_LOSS:
+                ok = ok and (acc_a - acc_before) >= 0.5 * loss
+            else:
+                # Predicted harm was small: the 50%-recovery test would be decided by predictor
+                # noise, so only require that the repair did not make predicted accuracy worse.
+                ok = ok and acc_a >= acc_before - NOISE_TOLERANCE
     return VerifyResult(ok, fault, sev_b, sev_a, acc_before, acc_a, after, regressions)
