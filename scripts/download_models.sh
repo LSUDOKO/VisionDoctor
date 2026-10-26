@@ -15,3 +15,5 @@ if [ "${VD_VLM:-0}" = "1" ]; then
 fi
 sha256sum models/*.onnx
 curl -fsSL -o models/face_sample.jpg $B/face_detection_yunet/resolve/main/example_outputs/largest_selfie.jpg || true
+# Trained impact predictor (produced by `make eval-impact`, frozen in results/final/).
+[ -s models/impact_hgb.joblib ] || cp results/final/impact_hgb.joblib models/impact_hgb.joblib
