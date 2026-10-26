@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import csv
 import itertools
+import json
 import os
 import random
 import time
@@ -72,6 +73,9 @@ def _task(args: tuple[str, int, list[tuple[str, int]]]) -> list[dict[str, object
 
     name, start, combos = args
     cache = OUT / "cache" / name
+    done = cache / f"rows_{start}.json"
+    if done.exists():  # resumable: finished tasks are cached
+        return json.loads(done.read_text())  # type: ignore[no-any-return]
     ref = Reference.load(cache / "reference")
     idx = [start + k * BURST_STEP for k in range(3)]
     clean = [cv2.imread(str(cache / f"{i}.png")) for i in idx]
@@ -86,7 +90,11 @@ def _task(args: tuple[str, int, list[tuple[str, int]]]) -> list[dict[str, object
             for flt in faults:
                 f = flt.apply(f)
             frames.append(f)
-        rep = scan(name, frames, ref, CameraState())
+        try:
+            rep = scan(name, frames, ref, CameraState())
+        except Exception as e:  # noqa: BLE001 - one bad sample must not kill a 30-min build
+            print("skip", name, start, combo, e, flush=True)
+            continue
         deg_d = [det.detect(f) for f in frames]
         y = float(np.mean([agreement(d, c) for d, c in zip(deg_d, clean_d, strict=True)]))
         x = feature_vector(rep, detector_signals(deg_d, ref.detector_baseline))
@@ -107,6 +115,7 @@ def _task(args: tuple[str, int, list[tuple[str, int]]]) -> list[dict[str, object
             row["ap_degraded"] = average_precision(persons(deg_d), g)
         row.update(dict(zip(FEATURE_NAMES, x.tolist(), strict=True)))
         rows.append(row)
+    done.write_text(json.dumps(rows))
     return rows
 
 
