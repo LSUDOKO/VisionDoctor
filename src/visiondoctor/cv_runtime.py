@@ -30,8 +30,9 @@ def build_info() -> dict[str, Any]:
     return {
         "version": cv2.__version__,
         "cv2_file": path,
-        # COOL installs under /opt/cool and links Arm KleidiCV (docs/05 §1).
-        "is_cool": "/opt/cool" in path or "kleidicv" in info.lower(),
+        # COOL installs under /opt/cool (docs/05 §1). KleidiCV alone is NOT evidence of COOL:
+        # the official OpenCV 5 aarch64 wheel also enables it (verified on Graviton4).
+        "is_cool": "/opt/cool" in path,
         "kleidicv": "kleidicv" in info.lower(),
         "machine": platform.machine(),
         "python": platform.python_version(),
