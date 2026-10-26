@@ -28,8 +28,12 @@ def synth(region: str, account: str, email: str | None, extra: dict[str, str]) -
     ec2 = boto3.client("ec2", region_name=region)
     pl = ec2.describe_managed_prefix_lists(
         Filters=[{"Name": "prefix-list-name", "Values": ["com.amazonaws.global.cloudfront.origin-facing"]}])
+    azs = sorted(z["ZoneName"] for z in ec2.describe_availability_zones(
+        Filters=[{"Name": "state", "Values": ["available"]}])["AvailabilityZones"])
     ctx = {"lean": "1", "region": region, "account": account,
-           "cloudfrontPrefixList": pl["PrefixLists"][0]["PrefixListId"], **extra}
+           "cloudfrontPrefixList": pl["PrefixLists"][0]["PrefixListId"],
+           # what the CDK CLI's context provider would have looked up
+           f"availability-zones:account={account}:region={region}": azs, **extra}
     if email:
         ctx["alertEmail"] = email
     env = os.environ | {"CDK_CONTEXT_JSON": json.dumps(ctx), "CDK_OUTDIR": str(out)}
@@ -41,8 +45,12 @@ def synth(region: str, account: str, email: str | None, extra: dict[str, str]) -
 def deploy(cfn: object, name: str, body: str) -> None:
     caps = ["CAPABILITY_IAM", "CAPABILITY_NAMED_IAM"]
     try:
-        cfn.describe_stacks(StackName=name)  # type: ignore[attr-defined]
+        st = cfn.describe_stacks(StackName=name)["Stacks"][0]["StackStatus"]  # type: ignore[attr-defined]
         exists = True
+        if st == "ROLLBACK_COMPLETE":  # failed first create: must delete before re-creating
+            cfn.delete_stack(StackName=name)  # type: ignore[attr-defined]
+            cfn.get_waiter("stack_delete_complete").wait(StackName=name)  # type: ignore[attr-defined]
+            exists = False
     except ClientError:
         exists = False
     try:
