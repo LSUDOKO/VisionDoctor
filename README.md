@@ -12,7 +12,7 @@ decision is traced.
 
 Entry for the OpenCV AI Competition 2026 (powered by AWS): Grand Prize, Agentic Vision Award,
 Best Use of COOL Award. Full specification in [`docs/`](docs/); measured results in
-[`results/summary.md`](results/final/summary.md); technical report in [`docs/REPORT.md`](docs/REPORT.md).
+[`results/final/summary.md`](results/final/summary.md); technical report in [`docs/REPORT.md`](docs/REPORT.md).
 
 ```mermaid
 flowchart LR
@@ -25,6 +25,25 @@ flowchart LR
   W & A --> D[(SQLite / DynamoDB<br/>FS / S3)]
   D --> UI[React dashboard]
 ```
+
+![fleet dashboard](docs/img/dashboard_fleet.png)
+
+| Incident queue (one-click approve) | Agent trace (OpenCV results change the plan) |
+|---|---|
+| ![incidents](docs/img/dashboard_incidents.png) | ![trace](docs/img/dashboard_trace_detail.png) |
+
+## Measured results (all from `results/final/`)
+
+| Experiment | Result |
+|---|---|
+| E1 fault detection, recall at severity ≥ 3 | **0.911** vs 0.239 classic tamper baseline; 0 alarms on clean bursts |
+| E3 label-free impact vs **true** MOT17 AP drop | Spearman ρ **0.50** (95% CI 0.42–0.58); vs agreement target ρ 0.53 |
+| E4 verified realign, person AP on MOT17 labels | 0.114 → **0.346** (clean 0.338): **92%** of lost accuracy recovered |
+| E5 policy agent, 40 generated incidents | **80%** correct outcome, **50%** fewer operator alerts, 7/7 transients closed silently |
+| Local benchmark (x86, 16 threads, stock OpenCV 5) | 101 scans/min of 12 × 1080p cameras, p50 568 ms |
+| `cdk synth` + cdk-nag AwsSolutions | 8 stacks, 0 unsuppressed findings |
+
+Failure cases and limits are reported in [`docs/REPORT.md`](docs/REPORT.md) §9.
 
 ## What is in the box
 
