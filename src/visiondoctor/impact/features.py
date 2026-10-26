@@ -71,3 +71,16 @@ def feature_vector(report: HealthReport, det_sig: dict[str, float]) -> np.ndarra
     v.append(report.overall_score)
     v.extend(det_sig.get(k, 1.0) for k in DETECTOR_KEYS)
     return np.asarray(v, dtype=np.float64)
+
+
+# Feature values of a perfectly healthy camera; used to explain which inputs moved.
+CLEAN_VECTOR = np.asarray(
+    [0.0] * len(CHECK_NAMES) + [d for _, _, d in EVIDENCE_KEYS] + [1.0, 1.0, 1.0, 0.0], dtype=np.float64
+)
+
+
+def top_deviations(x: np.ndarray, k: int = 3) -> list[str]:
+    scale = np.maximum(np.abs(CLEAN_VECTOR), 1.0)
+    dev = np.abs(x - CLEAN_VECTOR) / scale
+    dev[FEATURE_NAMES.index("det_conf_entropy")] = 0.0  # not interpretable on its own
+    return [FEATURE_NAMES[i] for i in np.argsort(-dev)[:k] if dev[i] > 0.05]

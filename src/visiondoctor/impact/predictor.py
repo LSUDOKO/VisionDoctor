@@ -18,7 +18,7 @@ from visiondoctor.config import get_settings
 from visiondoctor.health.reference import Reference
 from visiondoctor.health.types import HealthReport
 from visiondoctor.impact.detector import Detections, get_detector
-from visiondoctor.impact.features import FEATURE_NAMES, detector_signals, feature_vector, top5_conf
+from visiondoctor.impact.features import FEATURE_NAMES, detector_signals, feature_vector, top5_conf, top_deviations
 
 SEED = 7
 
@@ -100,12 +100,11 @@ def predict_impact(
         off = float(base.get("calib_offset", 0.0))
         m, lo, hi = (float(np.clip(v[0] + off, 0, 1)) for v in (mm, ll, hh))
         model = pred.version
-    order = np.argsort(-np.abs(x - np.median(x)))[:3]
     return {
         "predicted_accuracy": round(m, 3),
         "predicted_drop": round(1 - m, 3),
         "ci90": [round(lo, 3), round(hi, 3)],
-        "features_top3": [FEATURE_NAMES[i] for i in order],
+        "features_top3": top_deviations(x),
         "detector_signals": {k: round(v, 3) for k, v in sig.items()},
         "model": model,
     }
