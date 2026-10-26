@@ -9,6 +9,7 @@ that actually loaded is recorded.
 from __future__ import annotations
 
 import os
+import threading
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -61,6 +62,7 @@ class Detector:
             self.net = cv2.dnn.readNetFromONNX(str(path), engine=cv2.dnn.ENGINE_AUTO)
             self.engine = "ENGINE_AUTO"
         self.conf, self.nms = conf, nms
+        self._lock = threading.Lock()  # a cv2.dnn.Net is not safe to run from two threads
         self.grids, self.strides = _anchors()
 
     def detect(self, bgr: np.ndarray) -> Detections:
@@ -70,7 +72,7 @@ class Detector:
         pad = np.full((INPUT, INPUT, 3), 114, np.float32)
         pad[: int(h * r), : int(w * r)] = cv2.resize(rgb, (int(w * r), int(h * r)), interpolation=cv2.INTER_LINEAR)
         blob = pad.transpose(2, 0, 1)[None]
-        with timer("dnn_forward"):
+        with self._lock, timer("dnn_forward"):
             self.net.setInput(blob)
             out = self.net.forward()
         dets = out[0] if out.ndim == 3 else out
@@ -94,10 +96,12 @@ class Detector:
 
 
 _DETECTOR: Detector | None = None
+_INIT = threading.Lock()
 
 
 def get_detector() -> Detector:
     global _DETECTOR
-    if _DETECTOR is None:
-        _DETECTOR = Detector()
+    with _INIT:
+        if _DETECTOR is None:
+            _DETECTOR = Detector()
     return _DETECTOR
