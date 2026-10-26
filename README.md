@@ -39,7 +39,7 @@ flowchart LR
 | E1 fault detection, recall at severity ≥ 3 | **0.911** vs 0.239 classic tamper baseline; 0 alarms on clean bursts |
 | E3 label-free impact vs **true** MOT17 AP drop | Spearman ρ **0.50** (95% CI 0.42–0.58); vs agreement target ρ 0.53 |
 | E4 verified realign, person AP on MOT17 labels | 0.114 → **0.346** (clean 0.338): **92%** of lost accuracy recovered |
-| E5 policy agent, 40 generated incidents | **80%** correct outcome, **50%** fewer operator alerts, 7/7 transients closed silently |
+| E5 policy agent, 40 generated incidents | **75%** correct outcome, **65%** fewer operator alerts, 7/7 transients closed silently |
 | Local benchmark (x86, 16 threads, stock OpenCV 5) | 101 scans/min of 12 × 1080p cameras, p50 568 ms |
 | `cdk synth` + cdk-nag AwsSolutions | 8 stacks, 0 unsuppressed findings |
 

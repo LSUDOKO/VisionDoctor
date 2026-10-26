@@ -15,7 +15,7 @@ server**, behind a guard, with a full trace. Headline results: fault-detection r
 clean replays of crowded scenes false incidents remain high (26 per camera-day extrapolated, driven by MOT17-02/04;
 0 on the two uncrowded scenes; E2); verified realignment restores
 **92%** of the person-detection AP lost to drift on real MOT17 labels (0.114 → 0.346; E4); the label-free impact
-predictor ranks true MOT17 AP drops with Spearman ρ **0.50** (95% CI 0.42–0.58; E3); the policy agent picks the correct outcome for **80%** of generated incidents while cutting operator alerts by **50%** vs alarm-only (E5).
+predictor ranks true MOT17 AP drops with Spearman ρ **0.50** (95% CI 0.42–0.58; E3); the policy agent picks the correct outcome for **75%** of generated incidents while cutting operator alerts by **65%** vs alarm-only (E5).
 
 ## 2. Problem and users
 
@@ -128,15 +128,16 @@ and noise the detector lost little AP (clean 0.338 vs degraded 0.31–0.35), so 
 there (CIs span zero) — YOLOX is robust to these photometric faults at our severities; geometric faults hurt most.
 
 **E5 — agent** (`results/final/e5_agent_policy.json`, 40 generated incidents on a 4-camera simulated fleet, policy
-agent). Correct outcome **0.80** (95% CI 0.68–0.93). Operator alerts: 20 vs 40 for an alarm-only baseline →
-**50% workload reduction** with 18/20 needed escalations raised (2 missed, 2 unnecessary). All 7 transient glares closed
-as transient with no alert; 7 software faults auto-fixed and verified. Main error: 4 fixable faults ended as "watch"
-because verification rejected the repair (predicted accuracy did not recover) — a conservative failure. Mean 5.1 tool
-calls and 1.0 s per incident; detection took 2.15 scans on average (2-scan hysteresis); **100%** of decisions carry an
-OpenCV output summary and a reason in the trace. The Bedrock agent could not be evaluated (account access, §7).
-An earlier run (before the verify rule below and with the 10 incidents/min rate limit active) scored 0.60; the fix:
-when the predicted loss is < 0.15, verification requires "no predicted harm" (within the predictor's ~0.1 MAE)
-instead of 50% recovery, which predictor noise decided.
+agent, final code). Correct outcome **0.75** (95% CI 0.63–0.88). Operator alerts: 14 vs 40 for an alarm-only
+baseline → **65% workload reduction**. All 7 transient glares closed as transient with no alert; 10 of 13 software
+faults auto-fixed and verified. Errors: 7 missed escalations — 5 physical faults the policy put on the watchlist
+because predicted drop × criticality stayed below the 0.6 dispatch threshold (ground truth here says every physical
+fault needs a visit), 2 smudges not detected within 6 scans — and 3 fixable faults escalated/watched after
+verification rejected the repair (conservative). Mean 4.9 tool calls and 1.1 s per incident; detection took 2.1
+scans (2-scan hysteresis); **100%** of decisions carry an OpenCV output summary and a reason. The Bedrock agent could
+not be evaluated (account access, §7). History: a first run (before the "no predicted harm" verify rule for small
+predicted losses, and with the 10 incidents/min limit active) scored 0.60; an intermediate run 0.80; the number above
+is from the shipped code (after the realign-border fix).
 
 **E6 — benchmark** (`results/final/bench_summary.json`, environment in `bench_environment_local.json`). Only the
 local configuration could be run: x86-64, 16 threads, stock `opencv-python-headless` 5.0.0 — **101 scans/min** for 12
