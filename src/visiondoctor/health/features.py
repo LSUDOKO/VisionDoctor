@@ -40,6 +40,23 @@ def immerkaer_sigma(gray: np.ndarray) -> float:
     return float(np.sqrt(np.pi / 2.0) * np.abs(conv[1:-1, 1:-1]).sum() / (6.0 * (w - 2) * (h - 2)))
 
 
+def temporal_sigma(grays: list[np.ndarray]) -> float:
+    """Sensor noise from consecutive frames (static texture cancels in the difference).
+
+    Mean |diff| over pixels below 25 grey levels (movers excluded), converted from a half-normal
+    mean to σ of one frame: σ = mean·√(π/2)/√2. Integer medians are too quantised at low noise.
+    """
+    if len(grays) < 2:
+        return 0.0
+    vals = []
+    for a, b in zip(grays, grays[1:], strict=False):
+        d = cv2.absdiff(a, b)
+        small = d[d < 25]
+        if small.size:
+            vals.append(float(small.mean()) * np.sqrt(np.pi / 2.0) / np.sqrt(2.0))
+    return float(np.median(vals)) if vals else 0.0
+
+
 def hf_ratio(gray: np.ndarray, r_frac: float = 0.15) -> float:
     """Share of spectral energy outside radius r_frac·N on a centered square crop."""
     h, w = gray.shape

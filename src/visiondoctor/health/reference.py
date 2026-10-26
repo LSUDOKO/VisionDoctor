@@ -16,7 +16,13 @@ from typing import Any
 import cv2
 import numpy as np
 
-from visiondoctor.health.features import TILE_METRICS, FrameFeatures, compute_features, resize_to_width
+from visiondoctor.health.features import (
+    TILE_METRICS,
+    FrameFeatures,
+    compute_features,
+    resize_to_width,
+    temporal_sigma,
+)
 from visiondoctor.observability.metrics import timer
 
 ORB_FEATURES = 3000
@@ -162,6 +168,8 @@ def _learn_bucket(frames: list[np.ndarray], feats: list[FrameFeatures]) -> RefBu
     keys = feats[0].glob.keys()
     glob_mean = {k: float(np.mean([f.glob[k] for f in feats])) for k in keys}
     glob_std = {k: float(np.std([f.glob[k] for f in feats])) for k in keys}
+    nt = [temporal_sigma([a.gray, b.gray]) for a, b in zip(feats, feats[1:], strict=False)]
+    glob_mean["noise_t"], glob_std["noise_t"] = float(np.median(nt)), float(np.std(nt))
     diffs = [float(cv2.absdiff(a.gray, b.gray).mean()) for a, b in zip(feats, feats[1:], strict=False)]
     return RefBucket(
         background=background,
