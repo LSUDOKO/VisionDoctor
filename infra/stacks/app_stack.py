@@ -19,6 +19,9 @@ from stacks.auth_stack import AuthStack
 from stacks.data_stack import DataStack
 
 ROOT = Path(__file__).resolve().parents[2]
+# Never copy venvs, datasets or the cloud assembly into the image build context.
+EXCLUDE = [".git", ".venv", "**/.venv", "infra", "data", "models", "results", "vd_state",
+           "web/node_modules", "web/dist", "**/__pycache__"]
 
 
 class AppStack(cdk.Stack):
@@ -39,7 +42,7 @@ class AppStack(cdk.Stack):
                                   removal_policy=cdk.RemovalPolicy.DESTROY)
         task.add_container(
             "api",
-            image=ecs.ContainerImage.from_asset(str(ROOT), file="docker/Dockerfile.api"),
+            image=ecs.ContainerImage.from_asset(str(ROOT), file="docker/Dockerfile.api", exclude=EXCLUDE),
             port_mappings=[ecs.PortMapping(container_port=8000)],
             logging=ecs.LogDriver.aws_logs(stream_prefix="api", log_group=log_group),
             environment={
@@ -65,7 +68,10 @@ class AppStack(cdk.Stack):
         self.service = ecs.FargateService(self, "Api", cluster=cluster, task_definition=task, desired_count=1,
                                           security_groups=[sg], assign_public_ip=False,
                                           health_check_grace_period=cdk.Duration.seconds(240))
-        mcp_sg.add_ingress_rule(sg, ec2.Port.tcp(8765), "API/agent to MCP")
+        # Owned by this stack to avoid a cross-stack cycle: API tasks → internal MCP ALB on 8765.
+        ec2.CfnSecurityGroupIngress(self, "ApiToMcpAlb", group_id=mcp_sg.security_group_id, ip_protocol="tcp",
+                                    from_port=8765, to_port=8765, source_security_group_id=sg.security_group_id,
+                                    description="API/agent to MCP ALB")
         self.alb = elbv2.ApplicationLoadBalancer(self, "Alb", vpc=vpc, internet_facing=True)
         listener = self.alb.add_listener("Http", port=80, open=True)
         listener.add_targets("Api", port=8000, targets=[self.service],

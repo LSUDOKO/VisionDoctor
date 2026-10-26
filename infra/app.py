@@ -27,7 +27,7 @@ data = DataStack(app, "VdData", env=env)
 auth = AuthStack(app, "VdAuth", env=env)
 compute = CoolComputeStack(app, "VdCoolCompute", vpc=net.vpc, data=data, cool_ami_id=cool_ami, env=env)
 web_app = AppStack(app, "VdApp", vpc=net.vpc, data=data, auth=auth, mcp_url=compute.mcp_url,
-                   mcp_sg=compute.mcp_sg, env=env)
+                   mcp_sg=compute.alb_sg, env=env)
 web = WebStack(app, "VdWeb", api_alb=web_app.alb, env=env)
 ObservabilityStack(app, "VdObservability", data=data, compute=compute, app_stack=web_app, env=env)
 if app.node.try_get_context("bench"):
