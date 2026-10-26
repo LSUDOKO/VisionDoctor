@@ -34,7 +34,7 @@ function Tile({ c }: { c: Camera }) {
       className="panel group overflow-hidden text-left transition-colors hover:border-accent">
       <div className="relative aspect-video bg-raised scan-sweep">
         {c.thumbnail_url && (
-          <img src={`${c.thumbnail_url}?t=${Math.floor((c.last_scan_at ?? 0))}`} alt={`${c.camera_id} live view${faults.length ? `, ${faults.join(", ")} detected` : ""}`}
+          <img src={c.thumbnail_url.includes("?") ? c.thumbnail_url /* presigned S3: never alter */ : `${c.thumbnail_url}?t=${Math.floor(c.last_scan_at ?? 0)}`} alt={`${c.camera_id} live view${faults.length ? `, ${faults.join(", ")} detected` : ""}`}
             className="h-full w-full object-cover" loading="lazy" />
         )}
         <span className="absolute left-2 top-2 rounded bg-bg/80 px-1.5 py-0.5 font-mono text-[11px] text-fg">{c.camera_id}</span>
