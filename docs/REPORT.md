@@ -11,7 +11,9 @@ downstream detector's accuracy has dropped, **repairs** software-fixable faults 
 profile, **verifies** each repair by re-scanning and re-predicting, and escalates physical faults to a human with
 face-blurred evidence. An agent (deterministic policy or Amazon Bedrock Converse) acts only through an **MCP tool
 server**, behind a guard, with a full trace. Headline results: fault-detection recall **0.911** at severity ≥ 3 vs
-**0.239** for a classic tamper-detector baseline with **0** alarms on clean bursts (E1); verified realignment restores
+**0.239** for a classic tamper-detector baseline, with no alarms on 16 held-out clean bursts (E1) — but on long
+clean replays of crowded scenes false incidents remain high (26 per camera-day extrapolated, driven by MOT17-02/04;
+0 on the two uncrowded scenes; E2); verified realignment restores
 **92%** of the person-detection AP lost to drift on real MOT17 labels (0.114 → 0.346; E4); the label-free impact
 predictor ranks true MOT17 AP drops with Spearman ρ **0.50** (95% CI 0.42–0.58; E3); the policy agent picks the correct outcome for **80%** of generated incidents while cutting operator alerts by **50%** vs alarm-only (E5).
 
@@ -68,7 +70,7 @@ Startup asserts OpenCV ≥ 5 (`cv_runtime.py`). Every relevant op is timed (`vd.
 
 ## 6. AWS deployment
 
-CDK v2 (Python), seven stacks with cdk-nag (AwsSolutions): `VdNetwork` (2-AZ VPC, private subnets, S3/DynamoDB
+CDK v2 (Python), seven service stacks plus an optional benchmark stack (eight synthesised) with cdk-nag (AwsSolutions): `VdNetwork` (2-AZ VPC, private subnets, S3/DynamoDB
 gateway and SQS/Bedrock/SSM/Secrets/Logs interface endpoints), `VdData` (S3 SSE + Block Public Access, lifecycle 7 d
 frames / 90 d evidence, DynamoDB on-demand + PITR + TTL, SQS + DLQ), `VdAuth` (Cognito groups operator/technician/
 admin, SSM model parameter), `VdCoolCompute` (COOL AMI launch templates, IMDSv2, encrypted EBS, SSM-only access, ASG
