@@ -15,6 +15,9 @@ from visiondoctor.storage.local import LocalStorage
 @pytest.fixture()
 def fleet(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Fleet]:
     monkeypatch.setenv("VD_STATE_DIR", str(tmp_path))
+    # Golden traces test agent logic on a synthetic scene with no real objects, where the learned
+    # impact model is out of distribution: use the deterministic health-based impact fallback.
+    monkeypatch.setattr("visiondoctor.impact.predictor.get_predictor", lambda: None)
     get_settings.cache_clear()
     sim = FleetSimulator(cameras=3, sources_list=["synthetic"], speed=1.0)
     for i, cam in enumerate(sim.cameras.values()):
