@@ -21,3 +21,4 @@ web/test-results/
 web/playwright-report/
 infra/cdk.out/
 .DS_Store
+infra/.venv/

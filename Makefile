@@ -65,13 +65,13 @@ web-test:
 	cd web && npx playwright test
 
 synth:            ## CDK synth (+ cdk-nag)
-	cd infra && npx -y aws-cdk@2.1031.0 synth -c coolAmiId=$${COOL_AMI_ID:-ami-00000000000000000}
+	cd infra && npx -y aws-cdk@2.1146.1 synth -c coolAmiId=$${COOL_AMI_ID:-ami-00000000000000000}
 
 deploy:           ## real AWS deploy (costs money; needs COOL Marketplace subscription)
-	cd infra && npx -y aws-cdk@2.1031.0 deploy --all -c coolAmiId=$${COOL_AMI_ID:?set COOL_AMI_ID}
+	cd infra && npx -y aws-cdk@2.1146.1 deploy --all -c coolAmiId=$${COOL_AMI_ID:?set COOL_AMI_ID}
 
 down:             ## destroy all stacks; also cancel the COOL Marketplace trial!
-	cd infra && npx -y aws-cdk@2.1031.0 destroy --all
+	cd infra && npx -y aws-cdk@2.1146.1 destroy --all
 	@echo "Remember to cancel the COOL Marketplace subscription."
 
 clean:
