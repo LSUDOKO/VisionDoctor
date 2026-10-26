@@ -40,7 +40,8 @@ flowchart LR
 | E3 label-free impact vs **true** MOT17 AP drop | Spearman ρ **0.50** (95% CI 0.42–0.58); vs agreement target ρ 0.53 |
 | E4 verified realign, person AP on MOT17 labels | 0.114 → **0.346** (clean 0.338): **92%** of lost accuracy recovered |
 | E5 policy agent, 40 generated incidents | **75%** correct outcome, **65%** fewer operator alerts, 7/7 transients closed silently |
-| Local benchmark (x86, 16 threads, stock OpenCV 5) | 101 scans/min of 12 × 1080p cameras, p50 568 ms |
+| Benchmark, 12 × 1080p cameras, stock OpenCV 5 | **Graviton4 c8g.large (2 vCPU): 119 scans/min**, p50 485 ms, **$7.55 per 1M scans** (on-demand, Mumbai, Price List API); laptop x86 16 threads: 101 scans/min |
+| Live on AWS (Mumbai) | https://djekr86y464c8.cloudfront.net — Cognito login, Graviton4, Bedrock Nova Lite agent with guard |
 | `cdk synth` + cdk-nag AwsSolutions | 8 stacks, 0 unsuppressed findings |
 
 Failure cases and limits are reported in [`docs/REPORT.md`](docs/REPORT.md) §9.
@@ -100,7 +101,16 @@ make bench figs     # OpenCV micro + end-to-end benchmark for this host, report 
 
 Seeds are fixed (7). Frozen outputs used by the report are copied to `results/final/`.
 
-## Deploy to AWS (optional)
+## Live deployment
+
+**https://djekr86y464c8.cloudfront.net** (Cognito sign-in; judge credentials are in the private submission notes).
+It is the credit-friendly *lean* profile (`infra/stacks/lean_stack.py`, ~$1.3/day): one Graviton4 `c8g.large`
+(Ubuntu 24.04 + official OpenCV 5.0 wheel) behind CloudFront (origin reachable only from CloudFront's prefix list),
+S3 + DynamoDB, Cognito, SNS alerts, CloudWatch metrics and dashboard, AWS Budgets alerts. The agent runs on Amazon
+Bedrock (Nova Lite, Converse tool use) through the same guard as the policy agent. Deploy/destroy:
+`python scripts/deploy_lean.py --email you@example.com` / `--destroy` (no CDK bootstrap needed).
+
+## Deploy the full architecture (optional)
 
 1. Subscribe to **Cloud Optimized OpenCV for AWS Graviton4 (COOL 3.1)** in AWS Marketplace, note the AMI id.
 2. `cd infra && uv venv -p 3.12 .venv && uv pip install -r requirements.txt`
