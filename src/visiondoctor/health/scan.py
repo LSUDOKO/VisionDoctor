@@ -5,6 +5,7 @@ from __future__ import annotations
 import time
 from collections.abc import Callable
 
+import cv2
 import numpy as np
 
 from visiondoctor.health import heatmap
@@ -25,22 +26,45 @@ from visiondoctor.health.checks.base import CameraState, ScanContext
 from visiondoctor.health.features import compute_features
 from visiondoctor.health.reference import Reference
 from visiondoctor.health.types import CRITICAL_CHECKS, CheckResult, HealthReport
-from visiondoctor.observability.metrics import emit
+from visiondoctor.observability.metrics import emit, timer
 
-# Cheap checks first; geometric (drift, vibration) last.
+# Order matters: later checks read earlier results to avoid double-counting one cause
+# (e.g. smudge defers to sharpness/vibration, exposure defers to glare). Drift runs before the
+# tile checks so they can be evaluated on drift-compensated frames.
 CHECKS: list[tuple[str, Callable[[ScanContext], CheckResult]]] = [
     ("freeze", freeze.check),
-    ("exposure", exposure.check),
     ("glare", glare.check),
+    ("occlusion", occlusion.check),
+    ("exposure", exposure.check),
     ("color_cast", color_cast.check),
     ("noise", noise.check),
     ("haze", haze.check),
-    ("sharpness", sharpness.check),
-    ("occlusion", occlusion.check),
-    ("smudge", smudge.check),
     ("drift", drift.check),
+    ("sharpness", sharpness.check),
     ("vibration", vibration.check),
+    ("smudge", smudge.check),
 ]
+GLOBAL_LOSS = {"freeze"}  # a dead/uniform frame explains every other symptom
+
+
+def _drift_compensated(ctx: ScanContext, d: CheckResult) -> ScanContext:
+    """Warp frames back into reference geometry so tile checks compare like with like."""
+    H = d.evidence.get("H")
+    if d.severity < 1 or d.abstained or H is None or d.evidence.get("inlier_ratio", 0) < 0.25:
+        return ctx
+    Hinv = np.linalg.inv(np.asarray(H))
+    h, w = ctx.frames[0].shape[:2]
+    with timer("warpPerspective"):
+        frames = [
+            cv2.warpPerspective(f, Hinv, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT101)
+            for f in ctx.frames
+        ]
+    d.evidence["tile_checks_aligned"] = True
+    new = ScanContext(
+        ctx.reference, ctx.bucket_name, ctx.bucket, frames, [compute_features(f) for f in frames], ctx.state, ctx.now
+    )
+    new.results = ctx.results
+    return new
 
 
 def overall(checks: dict[str, CheckResult]) -> float:
@@ -73,7 +97,16 @@ def scan(
             continue
         t = time.perf_counter()
         results[name] = fn(ctx)
+        ctx.results[name] = results[name]
         op_ms[name] = (time.perf_counter() - t) * 1000
+        if name == "drift":
+            ctx = _drift_compensated(ctx, results[name])
+    dead = results.get("freeze")
+    if dead is not None and dead.evidence.get("dead"):
+        for n, r in results.items():
+            if n != "freeze" and r.severity:
+                r.evidence["explained_by"] = "freeze"
+                r.severity = 0
     q = heatmap.quality_map(ctx)
     scan_ms = (time.perf_counter() - t0) * 1000
     for name, ms in op_ms.items():
