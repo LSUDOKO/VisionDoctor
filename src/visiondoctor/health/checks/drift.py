@@ -22,7 +22,13 @@ MIN_INLIER_RATIO = 0.25
 def estimate_homography(
     ref_pts: np.ndarray, ref_des: np.ndarray, cur_gray: np.ndarray
 ) -> tuple[np.ndarray | None, int, int]:
-    """Return (H mapping reference→current, n_good_matches, n_inliers)."""
+    """Return (M mapping reference→current, n_good_matches, n_inliers).
+
+    USAC MAGSAC homography selects inliers; the reported motion is a similarity (rotation,
+    scale, translation) refit on those inliers with LMEDS. Camera drift is pan/tilt/roll, which
+    a similarity captures well, and it does not extrapolate spurious shear/perspective to the
+    frame corners when keypoints cluster in one part of the scene.
+    """
     with timer("orb_detect"):
         kps, des = orb().detectAndCompute(cur_gray, None)
     if des is None or len(ref_des) < 8 or len(des) < 8:
@@ -38,7 +44,11 @@ def estimate_homography(
         H, inl = cv2.findHomography(src, dst, cv2.USAC_MAGSAC, 3.0)
     if H is None or inl is None:
         return None, len(good), 0
-    return H, len(good), int(inl.sum())
+    keep = inl.ravel().astype(bool)
+    S, _ = cv2.estimateAffinePartial2D(src[keep], dst[keep], method=cv2.LMEDS)
+    if S is None:
+        return None, len(good), 0
+    return np.vstack([S, [0.0, 0.0, 1.0]]), len(good), int(keep.sum())
 
 
 def describe_homography(H: np.ndarray, w: int, h: int) -> dict[str, float]:
