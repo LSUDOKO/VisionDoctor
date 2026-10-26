@@ -1,0 +1,250 @@
+{
+ "total": 297.144,
+ "lines": [
+  {
+   "id": "hook1",
+   "scene": "hook",
+   "text": "When a city camera stops working, who notices?",
+   "start": 1.0,
+   "end": 4.528
+  },
+  {
+   "id": "hook2",
+   "scene": "hook",
+   "text": "Audits found that in Philadelphia, only 32 percent of sampled police cameras were working properly.",
+   "start": 4.928,
+   "end": 11.432
+  },
+  {
+   "id": "hook3",
+   "scene": "hook",
+   "text": "In Pittsburgh, 45 of 163 cameras were not fully operational. Baltimore did not even track camera uptime.",
+   "start": 11.832,
+   "end": 20.664
+  },
+  {
+   "id": "hook4",
+   "scene": "hook",
+   "text": "And the AI on those cameras fails silently with them. Detectors can fall to 30 to 60 percent of their clean performance on corrupted images.",
+   "start": 21.064,
+   "end": 30.472
+  },
+  {
+   "id": "intro1",
+   "scene": "intro",
+   "text": "This is VisionDoctor: the AI that watches the cameras, so every other camera AI can be trusted.",
+   "start": 31.472,
+   "end": 38.12
+  },
+  {
+   "id": "intro2",
+   "scene": "intro",
+   "text": "It runs one loop. Scan, predict the damage, repair, verify, or call a human.",
+   "start": 38.52,
+   "end": 45.48
+  },
+  {
+   "id": "scan1",
+   "scene": "scan",
+   "text": "Step one: scan. Each camera first learns what healthy looks like, from its own clean footage.",
+   "start": 46.48,
+   "end": 53.488
+  },
+  {
+   "id": "scan2",
+   "scene": "scan",
+   "text": "Then eleven OpenCV 5 checks compare every new burst of frames against that reference.",
+   "start": 53.888,
+   "end": 59.744
+  },
+  {
+   "id": "scan3",
+   "scene": "scan",
+   "text": "Here the camera has been knocked five degrees. ORB features and a USAC MAGSAC homography measure the drift exactly.",
+   "start": 60.144,
+   "end": 68.424
+  },
+  {
+   "id": "scan4",
+   "scene": "scan",
+   "text": "Other checks catch haze, glare, smudges, occlusion, noise, colour casts, blur, exposure and frozen streams.",
+   "start": 68.824,
+   "end": 76.792
+  },
+  {
+   "id": "scan5",
+   "scene": "scan",
+   "text": "On real MOT17 street footage, VisionDoctor catches 91 percent of severe faults. A classic tamper detector catches 24.",
+   "start": 77.192,
+   "end": 87.2
+  },
+  {
+   "id": "imp1",
+   "scene": "impact",
+   "text": "Step two is our key idea. How much accuracy has the AI on this camera lost, with no labels at all?",
+   "start": 88.2,
+   "end": 95.832
+  },
+  {
+   "id": "imp2",
+   "scene": "impact",
+   "text": "In simulation, every degraded frame has an identical clean twin. How well the detector agrees with itself across the twins becomes the training target.",
+   "start": 96.232,
+   "end": 106.024
+  },
+  {
+   "id": "imp3",
+   "scene": "impact",
+   "text": "A gradient boosted model learns to predict that loss from the health signals alone.",
+   "start": 106.424,
+   "end": 111.416
+  },
+  {
+   "id": "imp4",
+   "scene": "impact",
+   "text": "Checked against real human labels, its predictions rank the true accuracy drop with a correlation of 0.5.",
+   "start": 111.816,
+   "end": 119.232
+  },
+  {
+   "id": "rep1",
+   "scene": "repair",
+   "text": "Step three: repair what software can fix. Realign, exposure, dehaze, white balance and denoise.",
+   "start": 120.232,
+   "end": 128.2
+  },
+  {
+   "id": "rep2",
+   "scene": "repair",
+   "text": "Every repair is bounded, and it only counts if a fresh scan and a fresh prediction confirm the recovery.",
+   "start": 128.6,
+   "end": 135.008
+  },
+  {
+   "id": "rep3",
+   "scene": "repair",
+   "text": "For drift, realignment restored 92 percent of the lost person detection accuracy, from 0.11 to 0.35 average precision. The clean camera scores 0.34.",
+   "start": 135.408,
+   "end": 148.512
+  },
+  {
+   "id": "rep4",
+   "scene": "repair",
+   "text": "If verification fails, the repair is rolled back, and the fault is escalated.",
+   "start": 148.912,
+   "end": 154.12
+  },
+  {
+   "id": "agent1",
+   "scene": "agent",
+   "text": "Step four: the agent. It reasons on Amazon Bedrock, but it never touches pixels or AWS directly.",
+   "start": 155.12,
+   "end": 163.496
+  },
+  {
+   "id": "agent2",
+   "scene": "agent",
+   "text": "It acts only through thirteen MCP tools, and a guard checks every single call.",
+   "start": 163.896,
+   "end": 169.32
+  },
+  {
+   "id": "agent3",
+   "scene": "agent",
+   "text": "In a live run, the model passed the wrong repair id. The guard blocked it. The agent re-planned, verified the fix, and only then closed the incident.",
+   "start": 169.72,
+   "end": 180.784
+  },
+  {
+   "id": "agent4",
+   "scene": "agent",
+   "text": "Physical faults, like a dirty lens, go to a person, ranked by predicted harm times camera importance, with faces blurred in the evidence.",
+   "start": 181.184,
+   "end": 189.776
+  },
+  {
+   "id": "agent5",
+   "scene": "agent",
+   "text": "Across forty simulated incidents, it chose the right outcome 75 percent of the time, and cut operator alerts by 65 percent.",
+   "start": 190.176,
+   "end": 198.864
+  },
+  {
+   "id": "cloud1",
+   "scene": "cloud",
+   "text": "Step five: the cloud. VisionDoctor is live on AWS Graviton4 in Mumbai, behind CloudFront and Cognito, with S3, DynamoDB and Bedrock.",
+   "start": 199.864,
+   "end": 211.768
+  },
+  {
+   "id": "cloud2",
+   "scene": "cloud",
+   "text": "One small Graviton instance scans twelve HD cameras 119 times a minute. That is about seven and a half dollars per million scans.",
+   "start": 212.168,
+   "end": 222.032
+  },
+  {
+   "id": "web1",
+   "scene": "web",
+   "text": "Here is the real console, running live on AWS right now.",
+   "start": 223.032,
+   "end": 227.544
+  },
+  {
+   "id": "web2",
+   "scene": "web",
+   "text": "Every camera shows its health and its predicted AI accuracy. Open one, and compare the reference with the live view.",
+   "start": 227.944,
+   "end": 235.864
+  },
+  {
+   "id": "web3",
+   "scene": "web",
+   "text": "Incidents wait for one-click approval, and every agent decision can be replayed, step by step.",
+   "start": 236.264,
+   "end": 242.528
+  },
+  {
+   "id": "res1",
+   "scene": "research",
+   "text": "Every number you have seen comes from our evaluation scripts on real labelled footage, with confidence intervals, and failure cases in the report.",
+   "start": 243.528,
+   "end": 252.0
+  },
+  {
+   "id": "inno1",
+   "scene": "research",
+   "text": "What is new: label-free impact prediction, repairs that must prove themselves, technician-ready descriptions, and a queue ranked by real harm.",
+   "start": 252.4,
+   "end": 261.064
+  },
+  {
+   "id": "who1",
+   "scene": "who",
+   "text": "That helps security teams know which cameras really work, traffic teams trust their counts, factories catch drifting cameras, and technicians arrive with the right tool.",
+   "start": 262.064,
+   "end": 271.928
+  },
+  {
+   "id": "honest1",
+   "scene": "who",
+   "text": "It is not perfect. Crowded scenes still cause false alarms, and we say so.",
+   "start": 272.328,
+   "end": 278.448
+  },
+  {
+   "id": "pay1",
+   "scene": "payoff",
+   "text": "Scan, predict, repair, verify, escalate. Cameras you can trust, so the AI on them can be trusted too.",
+   "start": 279.448,
+   "end": 287.896
+  },
+  {
+   "id": "pay2",
+   "scene": "payoff",
+   "text": "VisionDoctor. Built with OpenCV 5, on AWS.",
+   "start": 288.296,
+   "end": 293.744
+  }
+ ]
+}

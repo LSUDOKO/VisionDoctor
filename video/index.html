@@ -1,0 +1,554 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>VisionDoctor — explainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Roboto+Mono:wght@400;500;700&display=block" rel="stylesheet">
+<style>
+  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #0b0f08; }
+  svg { display: block; }
+  .mono { font-family: 'Roboto Mono', monospace; }
+  .disp { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; letter-spacing: 0.02em; }
+</style>
+</head>
+<body>
+<svg id="stage" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <pattern id="dots" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.6" fill="#fcfaf5" opacity="0.07"/></pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#fcfaf5"/></marker>
+    <marker id="arrowY" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#ffe95c"/></marker>
+    <marker id="arrowR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#cb5521"/></marker>
+  </defs>
+  <g id="world"><rect x="-2000" y="-2000" width="8000" height="6600" fill="url(#dots)"/></g>
+</svg>
+<script>
+// ---------------------------------------------------------------------------------------------
+// Deterministic renderer: every visual property is computed from t inside window.seek(t).
+// World = 4000×2250 board. Camera = (cx, cy, w) of the visible world rect. No CSS animation,
+// no timers, no state carried between frames.
+// ---------------------------------------------------------------------------------------------
+const C = { bg: '#0b0f08', ink: '#fcfaf5', dim: '#8f9a80', yel: '#ffe95c', mint: '#d5f5c2', teal: '#a8e5e5',
+            blush: '#f6d0ff', terra: '#cb5521', forest: '#1a3300' };
+const NS = 'http://www.w3.org/2000/svg';
+const world = document.getElementById('world');
+let TL = null, DATA = null, FAULTS = null, TWINS = null, WEBN = 0;
+const L = {};                       // line id -> {start, end}
+const els = [];                     // drawable elements
+const views = [];                   // [time, view]
+
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const ease = x => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const lerp = (a, b, p) => a + (b - a) * p;
+function rnd(seed) { let s = seed; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
+function hash(str) { let h = 7; for (const c of str) h = (h * 31 + c.charCodeAt(0)) % 2147483647; return h || 1; }
+const at = (id, off = 0) => L[id].start + off;
+const end = id => L[id].end;
+
+function node(tag, attrs, parent = world) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  parent.appendChild(e); return e;
+}
+
+// --- hand-drawn primitives ------------------------------------------------------------------
+function sketchLine(x1, y1, x2, y2, r, j = 2.2) {
+  const mx = (x1 + x2) / 2 + (r() - 0.5) * j * 2, my = (y1 + y2) / 2 + (r() - 0.5) * j * 2;
+  return `M${x1 + (r() - 0.5) * j},${y1 + (r() - 0.5) * j} Q${mx},${my} ${x2 + (r() - 0.5) * j},${y2 + (r() - 0.5) * j}`;
+}
+function sketchRect(x, y, w, h, seed) {
+  const r = rnd(seed), o = 6;
+  return [sketchLine(x - o, y, x + w + o, y, r), sketchLine(x + w, y - o, x + w, y + h + o, r),
+          sketchLine(x + w + o, y + h, x - o, y + h, r), sketchLine(x, y + h + o, x, y - o, r)].join(' ');
+}
+function sketchCircle(cx, cy, rad, seed) {
+  const r = rnd(seed); let d = '';
+  for (let i = 0; i <= 36; i++) {
+    const a = (i / 36) * Math.PI * 2.08 - 0.3, rr = rad + (r() - 0.5) * rad * 0.06;
+    d += (i ? 'L' : 'M') + (cx + Math.cos(a) * rr).toFixed(1) + ',' + (cy + Math.sin(a) * rr).toFixed(1);
+  }
+  return d;
+}
+
+// stroke drawn by a marker between t0 and t0+dur
+function stroke(d, t0, dur, opt = {}) {
+  const p = node('path', { d, fill: 'none', stroke: opt.color || C.ink, 'stroke-width': opt.w || 3,
+    'stroke-linecap': 'round', 'stroke-linejoin': 'round', ...(opt.marker ? { 'marker-end': `url(#${opt.marker})` } : {}),
+    ...(opt.dash ? { 'stroke-dasharray': opt.dash } : {}) }, opt.parent);
+  const len = p.getTotalLength();
+  els.push({ type: 'stroke', p, len, t0, dur, dashed: !!opt.dash, fill: opt.fill });
+  return p;
+}
+function fillShape(d, t0, dur, color, opacity = 1, parent) {
+  const p = node('path', { d, fill: color, opacity: 0 }, parent);
+  els.push({ type: 'fade', p, t0, dur, max: opacity }); return p;
+}
+// text written left→right (clip wipe); optional highlighter behind
+function text(str, x, y, size, t0, dur, opt = {}) {
+  const g = node('g', {}, opt.parent);
+  const id = 'c' + els.length + Math.floor(Math.random() * 1e6);
+  const cp = node('clipPath', { id }, g); const cr = node('rect', { x: x - 4, y: y - size * 1.1, width: 0, height: size * 1.6 }, cp);
+  let hl = null;
+  if (opt.hl) hl = node('rect', { x: x - 6, y: y - size * 0.82, height: size * 1.05, width: 0, fill: C.yel, rx: 3, opacity: 0.92 }, g);
+  const t = node('text', { x, y, 'font-size': size, fill: opt.color || C.ink, class: opt.cls || 'mono',
+    'text-anchor': opt.anchor || 'start', 'clip-path': `url(#${id})`, ...(opt.weight ? { 'font-weight': opt.weight } : {}) }, g);
+  t.textContent = str;
+  els.push({ type: 'text', t, cr, hl, x, size, t0, dur, hlColor: opt.hl, anchor: opt.anchor || 'start', textColor: opt.color });
+  return t;
+}
+// image revealed by a wipe, framed by a sketched border
+function image(href, x, y, w, h, t0, dur, opt = {}) {
+  const id = 'i' + els.length;
+  const cp = node('clipPath', { id }, opt.parent); const cr = node('rect', { x, y, width: 0, height: h }, cp);
+  const im = node('image', { href, x, y, width: w, height: h, preserveAspectRatio: opt.fit || 'xMidYMid slice',
+    'clip-path': `url(#${id})` }, opt.parent);
+  els.push({ type: 'wipe', cr, w, t0, dur, im });
+  if (opt.frame !== false) stroke(sketchRect(x, y, w, h, hash(href + x)), t0 - 0.05, Math.min(dur, 0.7), { w: 2.5, color: opt.frameColor || C.ink, parent: opt.parent });
+  return im;
+}
+function seqImage(prefix, n, x, y, w, h, t0, t1, fps, opt = {}) {
+  const im = image(prefix + '0000.jpg', x, y, w, h, t0, 0.6, opt);
+  els.push({ type: 'seq', im, prefix, n, t0, t1, fps });
+}
+function grow(rect, t0, dur, horizontal, full) { els.push({ type: 'grow', rect, t0, dur, horizontal, full }); }
+
+// --- camera ---------------------------------------------------------------------------------
+const B = {
+  full: [0, 0, 4000, 2560], pole: [360, 80, 1000, 730], phil: [120, 730, 1060, 1125], pitt: [100, 1190, 1010, 1565],
+  fog: [90, 1590, 1010, 2035], title: [380, 2290, 2300, 2545], loop: [1080, 860, 2990, 1770],
+  box1top: [1090, 900, 1510, 1200], box1: [1080, 890, 1520, 1205], box1mid: [1090, 900, 1510, 1335],
+  box1grid: [1095, 1325, 1505, 1560], box1band: [1090, 1700, 1530, 2010], box2: [1585, 900, 1995, 1165],
+  box2mid: [1585, 900, 1995, 1310], box2bot: [1585, 1290, 1995, 1600], box3: [2080, 900, 2485, 1185],
+  loop34: [1090, 770, 2990, 1110], box4: [2075, 1000, 2985, 1560], rep4: [2540, 960, 3110, 1765],
+  agent: [1090, 140, 2720, 800], trace: [2625, 75, 3135, 545], traceZoom: [2645, 360, 3115, 545], ticket: [2280, 1560, 3110, 1770],
+  band: [1590, 1780, 2470, 2005], aws: [3140, 90, 3910, 1510], awsbot: [3145, 1235, 3905, 1500],
+  web: [3150, 1530, 3900, 2020], research: [1080, 760, 3910, 2050], notes: [1080, 870, 2990, 1700],
+  who: [1100, 2020, 2990, 2180], honest: [90, 2020, 1010, 2210],
+};
+const V = {};
+for (const [k, [x0, y0, x1, y1]] of Object.entries(B)) {
+  const w = Math.max((x1 - x0) * 1.08, (y1 - y0) * 1.08 / 0.84 * 16 / 9);
+  V[k] = [(x0 + x1) / 2, (y0 + y1) / 2 + (w * 9 / 16) * 0.075, w];
+}
+function viewAt(t) {
+  let cur = V.full, prevV = V.full, t0 = -10;
+  for (const [tt, v] of views) { if (t >= tt) { prevV = cur; cur = v; t0 = tt; } }
+  const p = ease(clamp((t - t0) / 1.1, 0, 1));
+  return [lerp(prevV[0], cur[0], p), lerp(prevV[1], cur[1], p), lerp(prevV[2], cur[2], p)];
+}
+function setCam(t) {
+  const [cx, cy, w] = viewAt(t);
+  const s = 1920 / w;
+  world.setAttribute('transform', `translate(${960 - cx * s} ${540 - cy * s}) scale(${s})`);
+}
+const cam = (id, v, off = 0) => views.push([at(id, off), V[v]]);
+
+// --- scene construction ---------------------------------------------------------------------
+function build() {
+  // camera plan (one move at a time; drawings start after the camera settles)
+  cam('hook1', 'pole', -1.0); cam('hook2', 'phil'); cam('hook3', 'pitt'); cam('hook4', 'fog');
+  cam('intro1', 'title'); cam('intro2', 'loop'); cam('scan1', 'box1top'); cam('scan2', 'box1'); cam('scan3', 'box1mid');
+  cam('scan4', 'box1grid'); cam('scan5', 'box1band'); cam('imp1', 'box2'); cam('imp3', 'box2mid'); cam('imp4', 'box2bot');
+  cam('rep1', 'box3'); cam('rep2', 'loop34'); cam('rep3', 'box4'); cam('rep4', 'rep4');
+  cam('agent1', 'agent'); cam('agent3', 'trace'); cam('agent3', 'traceZoom', 3.2); cam('agent4', 'ticket'); cam('agent5', 'band');
+  cam('cloud1', 'aws'); cam('cloud2', 'awsbot'); cam('web1', 'web'); cam('res1', 'research'); cam('inno1', 'notes');
+  cam('who1', 'who'); cam('honest1', 'honest'); cam('pay1', 'full'); cam('pay2', 'title');
+
+  const S = 1.05; // settle delay after a camera move
+  // ===== HOOK: the city ====================================================================
+  {
+    const t = at('hook1', 0.1);
+    stroke(sketchLine(420, 700, 420, 300, rnd(3), 3), t, 0.6, { w: 5 });                 // pole
+    stroke('M420 330 L560 300', t + 0.5, 0.3, { w: 5 });                                   // arm
+    stroke(sketchRect(540, 255, 190, 95, 11), t + 0.7, 0.6, { w: 4 });                     // camera body
+    stroke(sketchCircle(755, 302, 30, 12), t + 1.2, 0.5, { w: 4 });                        // lens
+    stroke('M380 700 L470 700', t + 1.5, 0.3, { w: 5 });
+    text('?', 800, 260, 170, t + 1.7, 0.4, { cls: 'disp', color: C.yel });
+    text('who notices?', 470, 620, 44, at('hook1', 2.3), 0.8, { cls: 'disp' });
+  }
+  {
+    const t = at('hook2', S);
+    for (let i = 0; i < 10; i++) {
+      const x = 150 + (i % 5) * 170, y = 760 + Math.floor(i / 5) * 150, tt = t + i * 0.14;
+      stroke(sketchRect(x, y, 110, 60, 50 + i), tt, 0.35, { w: 3 });
+      stroke(sketchCircle(x + 128, y + 30, 14, 70 + i), tt + 0.15, 0.25, { w: 3 });
+      const ok = [1, 4, 8].includes(i);
+      if (ok) stroke(`M${x + 25} ${y + 30} L${x + 48} ${y + 50} L${x + 90} ${y + 8}`, t + 1.8 + i * 0.05, 0.3, { w: 6, color: C.yel });
+      else stroke(`M${x + 30} ${y + 12} L${x + 80} ${y + 52} M${x + 80} ${y + 12} L${x + 30} ${y + 52}`, t + 2.3 + i * 0.04, 0.25, { w: 4, color: C.terra });
+    }
+    text('Philadelphia: 32% working', 150, 1105, 46, at('hook2', 3.2), 1.0, { cls: 'disp', hl: true, color: C.forest });
+  }
+  {
+    const t = at('hook3', S);
+    for (let i = 0; i < 163; i++) {
+      const x = 130 + (i % 41) * 21, y = 1215 + Math.floor(i / 41) * 46;
+      const down = i % 163 < 45 ? (i * 37) % 163 < 999 && [0,4,7,9,12,15,18,21,25,27,31,33,36,40,42,45,48,52,55,58,61,63,67,70,74,77,80,83,86,90,93,96,100,103,107,110,114,117,121,125,129,133,138,143,150].includes(i) : false;
+      stroke(`M${x} ${y} L${x} ${y + 32}`, t + i * 0.012, 0.08, { w: 4, color: down ? C.terra : C.ink });
+    }
+    text('Pittsburgh: 45 of 163 down', 130, 1430, 42, at('hook3', 3.0), 0.9, { cls: 'disp' });
+    stroke(sketchRect(780, 1450, 140, 100, 81), at('hook3', 4.8), 0.5, { w: 3 });
+    stroke('M805 1478 L895 1478 M805 1503 L870 1503 M805 1528 L885 1528', at('hook3', 5.2), 0.5, { w: 2, color: C.dim });
+    text('Baltimore: uptime not tracked', 130, 1530, 34, at('hook3', 5.6), 1.0, {});
+  }
+  {
+    const t = at('hook4', S);
+    image('assets/hook_clear.jpg', 120, 1610, 400, 225, t, 0.8);
+    image('assets/hook_fog.jpg', 560, 1610, 400, 225, t + 1.2, 0.8);
+    text('clear', 130, 1870, 26, t + 0.6, 0.4, {});
+    text('fog: boxes vanish', 570, 1870, 26, t + 1.8, 0.6, { color: C.terra });
+    const bar = node('rect', { x: 120, y: 1905, width: 0, height: 34, fill: C.ink, rx: 4 }); grow(bar, at('hook4', 4.0), 0.7, true, 760);
+    const bar2 = node('rect', { x: 120, y: 1950, width: 0, height: 34, fill: C.terra, rx: 4 }); grow(bar2, at('hook4', 5.0), 0.9, true, 840 * 0.45);
+    text('clean 100%', 895, 1932, 26, at('hook4', 4.4), 0.4, {});
+    text('corrupted: 30–60%', 520, 1977, 26, at('hook4', 5.8), 0.6, { color: C.terra });
+    text('Michaelis et al. 2019', 120, 2020, 22, at('hook4', 6.6), 0.6, { color: C.dim });
+  }
+  // ===== TITLE strip ========================================================================
+  {
+    const t = at('intro1', S - 0.3);
+    fillShape('M430 2370 h110 a18 18 0 0 1 18 18 v74 a18 18 0 0 1 -18 18 h-110 a18 18 0 0 1 -18 -18 v-74 a18 18 0 0 1 18 -18z', t, 0.4, C.yel);
+    text('vd', 463, 2448, 64, t + 0.3, 0.4, { cls: 'disp', color: C.forest });
+    text('VisionDoctor', 600, 2452, 92, t + 0.6, 1.0, { cls: 'disp' });
+    text('the AI that watches the cameras', 1300, 2440, 40, t + 2.0, 1.3, { hl: true, color: C.forest });
+  }
+  // ===== THE LOOP (skeleton) ================================================================
+  const boxes = [[1100, 'SCAN', 'scan'], [1590, 'PREDICT', 'predict the damage'], [2080, 'REPAIR', 'repair'], [2570, 'VERIFY', 'verify']];
+  {
+    const t = at('intro2', S); const step = (end('intro2') - t - 1.2) / 5;
+    boxes.forEach(([x, name], i) => {
+      stroke(sketchRect(x, 880, 400, 680, 100 + i), t + i * step, 0.6, { w: 3.5 });
+      text(`${i + 1} · ${name}`, x + 20, 935, 34, t + i * step + 0.4, 0.5, { cls: 'disp' });
+      if (i < 3) stroke(`M${x + 412} 1220 L${x + 482} 1220`, t + i * step + 0.7, 0.35, { w: 4, marker: 'arrow' });
+    });
+    // escalate branch → human
+    stroke('M2770 1565 L2770 1610', t + 4 * step, 0.3, { w: 4, marker: 'arrowR', color: C.terra });
+    stroke(sketchCircle(2770, 1632, 18, 140), t + 4 * step + 0.3, 0.3, { w: 3 });
+    stroke('M2770 1650 L2770 1700 M2745 1670 L2795 1670 M2770 1700 L2750 1740 M2770 1700 L2790 1740', t + 4 * step + 0.5, 0.5, { w: 3 });
+    text('human', 2805, 1690, 26, t + 4 * step + 0.8, 0.4, {});
+  }
+  // ===== BOX 1: SCAN =========================================================================
+  {
+    const t = at('scan1', S);
+    for (let k = 0; k < 5; k++) stroke(sketchRect(1130 - k * 4, 965 - k * 4, 340, 191, 160 + k), t + k * 0.12, 0.3, { w: 1.5, color: C.dim });
+    image('assets/ref.jpg', 1110, 945, 380, 214, t + 1.0, 0.8);
+    text('learned reference', 1112, 1180, 15, at('scan1', 3.6), 0.6, { hl: true, color: C.forest });
+  }
+  {
+    const t = at('scan2', S);
+    for (let k = 0; k < 11; k++) {             // 11 checks as ticks around the reference
+      const a = -Math.PI * 0.95 + (k / 10) * Math.PI * 0.9, cx = 1300 + Math.cos(a) * 205, cy = 1052 + Math.sin(a) * 125;
+      stroke(sketchCircle(cx, cy, 9, 200 + k), t + k * 0.18, 0.2, { w: 2.5, color: C.yel });
+    }
+    text('11 OpenCV 5 checks', 1490, 937, 17, at('scan2', 3.2), 0.8, { cls: 'disp', anchor: 'end', color: C.yel });
+  }
+  {
+    const t = at('scan3', S);
+    image('assets/matches.jpg', 1110, 1195, 380, 107, t, 0.9);
+    text(`rotation ${DATA.drift.rot.toFixed(1)}° · ${DATA.drift.inliers} inliers`, 1112, 1318, 13, at('scan3', 4.0), 0.9, { hl: true, color: C.forest });
+  }
+  {
+    const t = at('scan4', S);
+    const names = ['haze', 'glare', 'smudge', 'occlusion', 'noise', 'color_cast', 'defocus', 'exposure', 'freeze'];
+    names.forEach((n, i) => {
+      const x = 1110 + (i % 3) * 129, y = 1342 + Math.floor(i / 3) * 72, tt = t + i * 0.55;
+      image(`assets/fault_${n}.jpg`, x, y, 122, 69, tt, 0.4, { frameColor: C.dim });
+      const sev = FAULTS[i].severity;
+      text(`${n.replace('_', ' ')} · sev ${sev}`, x + 3, y + 66, 8, tt + 0.3, 0.3, { hl: true, color: C.forest });
+    });
+  }
+  {
+    const t = at('scan5', S);
+    const y0 = 1800;
+    const b1 = node('rect', { x: 1130, y: y0, width: 0, height: 60, fill: C.ink, rx: 6 }); grow(b1, t + 0.5, 0.9, true, 330 * DATA.e1.ours);
+    const b2 = node('rect', { x: 1130, y: y0 + 90, width: 0, height: 60, fill: C.dim, rx: 6 }); grow(b2, t + 3.4, 0.6, true, 330 * DATA.e1.baseline);
+    text(`${Math.round(DATA.e1.ours * 100)}%`, 1130 + 330 * DATA.e1.ours + 12, y0 + 48, 50, t + 1.4, 0.5, { cls: 'disp', color: C.yel });
+    text('VisionDoctor', 1140, y0 - 12, 20, t + 0.3, 0.5, {});
+    text(`${Math.round(DATA.e1.baseline * 100)}%`, 1130 + 330 * DATA.e1.baseline + 12, y0 + 138, 50, t + 4.0, 0.5, { cls: 'disp', color: C.dim });
+    text('classic tamper detector', 1140, y0 + 80, 20, t + 3.2, 0.5, { color: C.dim });
+    text('recall, severe faults · MOT17', 1130, y0 + 185, 16, t + 5.2, 0.7, { color: C.dim });
+  }
+  // ===== BOX 2: PREDICT (label-free impact) ===================================================
+  {
+    const t = at('imp1', S);
+    text('accuracy lost? no labels', 1605, 972, 20, t + 1.0, 1.1, { cls: 'disp', hl: true, color: C.forest });
+  }
+  {
+    const t = at('imp2', S);
+    image('assets/twin_clean.jpg', 1600, 995, 188, 106, t, 0.7);
+    image('assets/twin_haze.jpg', 1795, 995, 188, 106, t + 0.9, 0.7);
+    text('clean twin', 1603, 1120, 12, t + 0.6, 0.4, {});
+    text('degraded', 1798, 1120, 12, t + 1.5, 0.4, {});
+    stroke('M1700 1105 C1740 1135 1840 1135 1880 1105', at('imp2', 4.2), 0.6, { w: 2.5, color: C.yel, marker: 'arrowY' });
+    text(`agreement ${TWINS.agreement.toFixed(2)} = target`, 1700, 1152, 14, at('imp2', 5.5), 0.9, { hl: true, color: C.forest });
+  }
+  {
+    const t = at('imp3', S);
+    const nodes = [[1640, 'health'], [1790, 'model'], [1935, 'accuracy']];
+    nodes.forEach(([x, n], i) => {
+      stroke(sketchCircle(x, 1230, 38, 300 + i), t + i * 0.7, 0.4, { w: 2.5, color: i === 1 ? C.teal : C.ink });
+      text(n, x, 1290, 12, t + i * 0.7 + 0.3, 0.3, { anchor: 'middle' });
+      if (i < 2) stroke(`M${x + 44} 1230 L${x + 106} 1230`, t + i * 0.7 + 0.45, 0.25, { w: 2.5, marker: 'arrow' });
+    });
+    // tiny tree inside the model node
+    stroke('M1790 1205 L1772 1235 M1790 1205 L1808 1235 M1772 1235 L1762 1255 M1772 1235 L1782 1255 M1808 1235 L1818 1255', t + 1.0, 0.5, { w: 2, color: C.teal });
+  }
+  {
+    const t = at('imp4', S);
+    const X0 = 1640, Y0 = 1545, W = 320, H = 210;
+    stroke(`M${X0} ${Y0 - H} L${X0} ${Y0} L${X0 + W} ${Y0}`, t, 0.5, { w: 2 });
+    stroke(`M${X0} ${Y0} L${X0 + W} ${Y0 - H}`, t + 0.4, 0.4, { w: 1.5, color: C.dim, dash: '6 6' });
+    const n = DATA.e3.pred.length;
+    DATA.e3.pred.forEach((p, i) => {
+      const tr = clamp(DATA.e3.true[i], 0, 1), x = X0 + tr * W, y = Y0 - clamp(p, 0, 1) * H;
+      const c = node('circle', { cx: x, cy: y, r: 2.6, fill: C.yel, opacity: 0 });
+      els.push({ type: 'fade', p: c, t0: t + 0.6 + (i / n) * 2.4, dur: 0.15, max: 0.85 });
+    });
+    text('true AP drop (human labels)', X0 + 40, Y0 + 20, 11, t + 0.8, 0.5, { color: C.dim });
+    text('predicted', X0 - 6, Y0 - H - 8, 11, t + 0.8, 0.4, { color: C.dim });
+    text(`ρ = ${DATA.e3.rho.toFixed(2)}`, X0 + 20, Y0 - H + 30, 26, at('imp4', 4.6), 0.6, { cls: 'disp', color: C.yel });
+  }
+  // ===== BOX 3: REPAIR ========================================================================
+  {
+    const t = at('rep1', S - 0.2);
+    ['realign', 'exposure', 'dehaze', 'white balance', 'denoise'].forEach((n, i) => {
+      const y = 965 + i * 42, tt = t + 0.9 + i * 0.85;
+      stroke(sketchRect(2100, y, 200, 32, 400 + i), tt, 0.35, { w: 2, color: C.mint });
+      text(n, 2112, y + 22, 15, tt + 0.2, 0.4, {});
+    });
+  }
+  {
+    const t = at('rep2', S);
+    stroke('M2770 875 C2770 815 1300 815 1300 875', t, 1.6, { w: 3.5, color: C.yel, marker: 'arrowY' });
+    text('re-scan + re-predict', 2035, 805, 26, t + 1.4, 0.8, { anchor: 'middle', color: C.yel });
+    stroke(sketchCircle(2770, 1035, 62, 500), t + 2.4, 0.6, { w: 4 });
+    stroke('M2738 1035 L2763 1062 L2808 1006', t + 3.0, 0.4, { w: 7, color: C.yel });
+    text('bounded: ≤10°, γ 0.5–2', 2330, 1185, 13, t + 3.6, 0.7, { color: C.dim });
+  }
+  {
+    const t = at('rep3', S);
+    image('assets/drift.jpg', 2090, 1220, 188, 106, t, 0.6);
+    image('assets/fixed.jpg', 2285, 1220, 188, 106, t + 0.8, 0.6);
+    text('drifted', 2093, 1345, 12, t + 0.5, 0.3, { color: C.terra });
+    text('realigned', 2288, 1345, 12, t + 1.3, 0.3, {});
+    const bars = [['clean', DATA.e4.clean, C.ink], ['drifted', DATA.e4.degraded, C.terra], ['repaired', DATA.e4.repaired, C.yel]];
+    bars.forEach(([n, v, c], i) => {
+      const x = 2620 + i * 115, h = v * 600, tt = at('rep3', 3.0) + i * 1.6;
+      const r = node('rect', { x, y: 1440, width: 80, height: 0, fill: c, rx: 4 }); grow(r, tt, 0.7, false, h);
+      text(v.toFixed(2), x + 40, 1430 - h, 20, tt + 0.6, 0.4, { cls: 'disp', anchor: 'middle', color: c });
+      text(n, x + 40, 1468, 13, tt + 0.2, 0.3, { anchor: 'middle' });
+    });
+    text('person AP@0.5 · MOT17 labels', 2600, 1500, 12, at('rep3', 2.8), 0.6, { color: C.dim });
+    text(`${Math.round(DATA.e4.recovered * 100)}% recovered`, 2600, 1540, 28, at('rep3', 8.6), 0.8, { cls: 'disp', hl: true, color: C.forest });
+  }
+  {
+    const t = at('rep4', 0.3);
+    stroke('M2730 995 L2810 1075 M2810 995 L2730 1075', t, 0.5, { w: 6, color: C.terra });
+    text('rollback → escalate', 2815, 1625, 22, t + 1.0, 0.7, { color: C.terra });
+  }
+  // ===== AGENT (top) ==========================================================================
+  {
+    const t = at('agent1', S);
+    stroke('M1240 380 C1180 280 1290 190 1380 230 C1430 150 1560 170 1580 250 C1680 250 1700 380 1630 420 C1660 500 1560 560 1490 520 C1440 580 1320 570 1300 500 C1220 500 1190 430 1240 380z', t, 1.2, { w: 3.5, color: C.blush });
+    node('image', { href: 'assets/aws/AmazonBedrock.svg', x: 1390, y: 300, width: 120, height: 120, opacity: 0, id: 'brIcon' });
+    els.push({ type: 'fade', p: document.getElementById('brIcon'), t0: t + 1.1, dur: 0.4, max: 1 });
+    text('Amazon Bedrock · Nova', 1450, 620, 26, t + 1.6, 0.8, { anchor: 'middle' });
+    stroke('M1100 780 L2970 780', at('agent1', 5.0), 1.0, { w: 2.5, color: C.terra, dash: '14 10' });
+    text('no pixels · no AWS keys', 2035, 765, 22, at('agent1', 5.8), 0.7, { anchor: 'middle', color: C.terra });
+  }
+  {
+    const t = at('agent2', S - 0.2);
+    // guard gate
+    stroke('M1880 560 L1880 260 M2120 560 L2120 260', t, 0.5, { w: 5 });
+    stroke('M1860 330 L2140 330', t + 0.4, 0.3, { w: 9, color: C.yel });
+    text('GUARD', 2000, 300, 36, t + 0.7, 0.4, { cls: 'disp', anchor: 'middle', color: C.yel });
+    // toolbox with 13 tools
+    stroke(sketchRect(2280, 330, 300, 230, 600), t + 0.9, 0.5, { w: 3.5 });
+    for (let k = 0; k < 13; k++) stroke(`M${2300 + k * 21} 345 L${2300 + k * 21} ${300 - (k % 3) * 18}`, t + 1.3 + k * 0.06, 0.12, { w: 5, color: C.teal });
+    text('13 MCP tools', 2430, 610, 26, t + 2.2, 0.6, { anchor: 'middle' });
+    stroke('M1660 420 L1860 420', t + 2.6, 0.4, { w: 3.5, marker: 'arrow' });
+    stroke('M2140 420 L2270 420', t + 3.0, 0.3, { w: 3.5, marker: 'arrow' });
+    stroke('M2430 570 L2430 870', t + 3.4, 0.5, { w: 3, marker: 'arrow', dash: '10 8' });
+  }
+  {
+    const t = at('agent3', S);
+    image('assets/trace_crop.png', 2640, 110, 480, 385, t, 1.0, { fit: 'xMidYMin slice' });
+    text('live Bedrock trace · AWS', 2640, 95, 14, t + 0.6, 0.5, { color: C.yel });
+    stroke(sketchRect(2664, 393, 432, 70, 700), at('agent3', 3.6), 0.6, { w: 4, color: C.terra });
+    text('blocked by guard', 2640, 530, 18, at('agent3', 4.2), 0.5, { hl: true, color: C.forest });
+    stroke(sketchRect(2664, 467, 432, 28, 701), at('agent3', 6.8), 0.6, { w: 4, color: C.yel });
+    text('re-planned · verified', 2860, 530, 18, at('agent3', 7.4), 0.5, { hl: true, color: C.forest });
+  }
+  {
+    const t = at('agent4', S);
+    stroke(sketchRect(2300, 1585, 420, 165, 800), t, 0.6, { w: 3, color: C.blush });
+    image('assets/fault_smudge.jpg', 2312, 1597, 150, 84, t + 0.5, 0.5, { frameColor: C.dim });
+    image('assets/face_after.jpg', 2472, 1597, 150, 84, t + 3.2, 0.5, { frameColor: C.dim });
+    text('dirty lens', 2314, 1700, 13, t + 0.9, 0.3, {});
+    text('faces blurred', 2474, 1700, 13, t + 3.6, 0.4, {});
+    text('harm × importance', 2314, 1735, 18, at('agent4', 3.8), 0.7, { cls: 'disp', hl: true, color: C.forest });
+  }
+  {
+    const t = at('agent5', S);
+    text(`${Math.round(DATA.e5.correct * 100)}%`, 1640, 1890, 110, t + 0.5, 0.6, { cls: 'disp', color: C.yel });
+    text('right outcome', 1650, 1935, 22, t + 1.0, 0.5, {});
+    text(`−${Math.round(DATA.e5.reduction * 100)}%`, 2000, 1890, 110, at('agent5', 4.4), 0.6, { cls: 'disp', color: C.mint });
+    text(`alerts: ${DATA.e5.alerts_baseline} → ${DATA.e5.alerts_agent}`, 2010, 1935, 22, at('agent5', 5.0), 0.6, {});
+    text('40 simulated incidents', 1650, 1980, 16, at('agent5', 6.4), 0.6, { color: C.dim });
+  }
+  // ===== AWS (right): official architecture icons ============================================
+  {
+    const t = at('cloud1', S - 0.2);
+    stroke(sketchRect(3150, 100, 750, 1400, 900), t, 0.8, { w: 2.5, color: C.dim });
+    node('image', { href: 'assets/aws/AWSCloudlogoDark.svg', x: 3150, y: 100, width: 52, height: 52, opacity: 0, id: 'awsLogo' });
+    els.push({ type: 'fade', p: document.getElementById('awsLogo'), t0: t + 0.5, dur: 0.3, max: 1 });
+    text('AWS Cloud · ap-south-1 (Mumbai)', 3215, 135, 20, t + 0.6, 0.6, {});
+    const icons = [
+      ['AmazonCloudFront', 3560, 190, 'CloudFront', 0], ['AmazonCognito', 3240, 190, 'Cognito', 1],
+      ['AmazonEC2', 3560, 470, 'EC2 Graviton4', 2], ['AmazonSimpleStorageService', 3220, 780, 'S3', 3],
+      ['AmazonDynamoDB', 3420, 780, 'DynamoDB', 4], ['AmazonBedrock', 3640, 780, 'Bedrock', 5],
+      ['AmazonSimpleNotificationService', 3220, 1040, 'SNS', 6], ['AmazonCloudWatch', 3420, 1040, 'CloudWatch', 7],
+      ['AWSBudgets', 3640, 1040, 'Budgets', 8]];
+    const step = (end('cloud1') - t - 1.5) / icons.length;
+    icons.forEach(([f, x, y, label, i]) => {
+      const sz = f === 'AmazonEC2' ? 150 : 110;
+      const im = node('image', { href: `assets/aws/${f}.svg`, x, y, width: sz, height: sz, opacity: 0 });
+      els.push({ type: 'fade', p: im, t0: t + 1.2 + i * step, dur: 0.25, max: 1 });
+      text(label, x + sz / 2, y + sz + 30, 18, t + 1.35 + i * step, 0.3, { anchor: 'middle' });
+    });
+    const a0 = t + 1.2;
+    stroke('M3615 330 L3630 460', a0 + 1 * step, 0.3, { w: 3, marker: 'arrow' });      // CloudFront → EC2
+    stroke('M3350 245 L3550 245', a0 + 2 * step, 0.3, { w: 3, marker: 'arrow' });      // Cognito → CloudFront
+    stroke('M3600 640 L3290 775', a0 + 3.2 * step, 0.3, { w: 3, marker: 'arrow' });
+    stroke('M3620 640 L3480 775', a0 + 4.2 * step, 0.3, { w: 3, marker: 'arrow' });
+    stroke('M3650 640 L3690 775', a0 + 5.2 * step, 0.3, { w: 3, marker: 'arrow' });
+    stroke('M3580 640 L3280 1035', a0 + 6.2 * step, 0.3, { w: 2.5, marker: 'arrow', dash: '8 6' });
+    stroke('M3640 640 L3475 1035', a0 + 7.2 * step, 0.3, { w: 2.5, marker: 'arrow', dash: '8 6' });
+    text('VisionDoctor app · OpenCV 5', 3480, 700, 15, a0 + 2.6 * step, 0.4, { color: C.yel });
+  }
+  {
+    const t = at('cloud2', S);
+    const b = node('rect', { x: 3230, y: 1290, width: 0, height: 46, fill: C.yel, rx: 5 }); grow(b, t + 0.6, 1.0, true, 560 * (DATA.bench['graviton4-stock-c8g.large'].spm / 130));
+    const b2 = node('rect', { x: 3230, y: 1350, width: 0, height: 26, fill: C.dim, rx: 4 }); grow(b2, t + 1.8, 0.6, true, 560 * (DATA.bench['local-x86'].spm / 130));
+    text(`${Math.round(DATA.bench['graviton4-stock-c8g.large'].spm)} scans/min`, 3240, 1280, 34, t + 1.4, 0.6, { cls: 'disp' });
+    text('Graviton4 c8g.large · 2 vCPU · 12 HD cams', 3240, 1405, 15, t + 2.2, 0.7, { color: C.dim });
+    text(`$${DATA.bench['graviton4-stock-c8g.large'].usd.toFixed(2)} / 1M scans`, 3240, 1465, 34, at('cloud2', 6.0), 0.7, { cls: 'disp', hl: true, color: C.forest });
+  }
+  // ===== LIVE WEBSITE (monitor) ==============================================================
+  {
+    const t = at('web1', S - 0.3);
+    stroke(sketchRect(3165, 1570, 720, 405, 950), t, 0.6, { w: 4 });
+    stroke('M3470 1975 L3450 2005 M3580 1975 L3600 2005 M3420 2005 L3630 2005', t + 0.4, 0.4, { w: 4 });
+    seqImage('assets/web/f', WEBN, 3170, 1575, 710, 395, t + 0.6, end('web3') + 0.3, 30, { frame: false, fit: 'xMidYMin slice' });
+    text('LIVE · djekr86y464c8.cloudfront.net', 3170, 1555, 15, t + 0.8, 0.6, { color: C.yel });
+  }
+  // ===== RESEARCH + INNOVATION ================================================================
+  {
+    const t = at('res1', S);
+    // underline each measured chart in turn
+    [[1130, 2005, 330], [1640, 1560, 320], [2600, 1555, 330], [1640, 2000, 700], [3230, 1490, 560]].forEach(([x, y, w], i) => {
+      stroke(`M${x} ${y} L${x + w} ${y}`, t + 0.6 + i * 0.9, 0.4, { w: 5, color: C.yel });
+    });
+    stroke(sketchRect(2480, 1790, 200, 210, 990), t + 4.8, 0.5, { w: 3 });
+    stroke('M2500 1830 L2660 1830 M2500 1860 L2640 1860 M2500 1890 L2650 1890 M2500 1920 L2610 1920 M2500 1950 L2655 1950', t + 5.2, 0.6, { w: 2, color: C.dim });
+    text('REPORT.md', 2490, 2030, 18, t + 5.6, 0.4, { cls: 'disp' });
+    text('95% CIs · failure cases', 2700, 1880, 18, t + 6.0, 0.6, { color: C.dim });
+  }
+  {
+    const t = at('inno1', S - 0.2), step = (end('inno1') - t - 0.4) / 4;
+    const notes = [['label-free impact', C.mint], ['repairs prove themselves', C.teal],
+                   ['technician-ready words', C.blush], ['ranked by real harm', C.yel]];
+    notes.forEach(([s, c], i) => {
+      const x = 1100 + (i % 2) * 590, y = 1585 + Math.floor(i / 2) * 82;
+      fillShape(`M${x} ${y} h560 v68 h-560z`, t + i * step, 0.25, c, 0.95);
+      text(s, x + 280, y + 46, 30, t + i * step + 0.2, 0.5, { cls: 'disp', anchor: 'middle', color: C.forest });
+    });
+  }
+  // ===== WHO + HONEST =========================================================================
+  {
+    const t = at('who1', S - 0.3), step = (end('who1') - t - 0.6) / 4;
+    [['security teams', C.mint], ['traffic counts', C.teal], ['factory cameras', C.blush], ['technicians', C.yel]].forEach(([s, c], i) => {
+      const x = 1120 + i * 465;
+      fillShape(`M${x} 2040 h420 v120 h-420z`, t + i * step, 0.25, c, 0.95);
+      text(s, x + 210, 2112, 34, t + i * step + 0.2, 0.6, { cls: 'disp', anchor: 'middle', color: C.forest });
+    });
+  }
+  {
+    const t = at('honest1', S - 0.3);
+    image('assets/crowd.jpg', 120, 2040, 230, 129, t, 0.6);
+    text('crowds → false alarms', 380, 2100, 30, t + 0.9, 0.8, { color: C.terra });
+    text('we report it', 380, 2145, 24, t + 2.2, 0.6, { color: C.dim });
+  }
+  // ===== PAYOFF ===============================================================================
+  {
+    const t = at('pay1', 1.3), step = 0.9;
+    boxes.forEach(([x], i) => stroke(sketchRect(x - 8, 872, 416, 696, 1000 + i), t + i * step, 0.6, { w: 6, color: C.yel }));
+    text('Trusted cameras. Trusted AI.', 2500, 2452, 64, at('pay1', 5.0), 1.2, { cls: 'disp', color: C.yel });
+  }
+  {
+    const t = at('pay2', S - 0.4);
+    text('Built with OpenCV 5 · on AWS', 600, 2330, 34, t, 0.9, { cls: 'disp', color: C.yel });
+    text('github.com/LSUDOKO/VisionDoctor', 1300, 2525, 30, t + 1.4, 0.9, {});
+  }
+}
+
+// --- per-frame evaluation -------------------------------------------------------------------
+function apply(t) {
+  setCam(t);
+  for (const e of els) {
+    const raw = (t - e.t0) / e.dur, p = clamp(raw, 0, 1), q = ease(p);
+    switch (e.type) {
+      case 'stroke':
+        if (e.dashed) { e.p.setAttribute('opacity', p > 0 ? 1 : 0); e.p.style.clipPath = ''; e.p.setAttribute('stroke-dashoffset', 0);
+          // dashed lines grow by a mask-free trick: scale along length via dasharray offset is not possible, so reveal by opacity + dash shift
+          e.p.setAttribute('opacity', q); }
+        else { e.p.setAttribute('stroke-dasharray', `${e.len} ${e.len}`); e.p.setAttribute('stroke-dashoffset', e.len * (1 - q));
+               e.p.setAttribute('opacity', p > 0 ? 1 : 0); }
+        break;
+      case 'fade': e.p.setAttribute('opacity', q * e.max); break;
+      case 'text': {
+        const bb = e.bb || (e.bb = e.t.getBBox());
+        e.cr.setAttribute('x', bb.x - 4); e.cr.setAttribute('width', (bb.width + 10) * q);
+        if (e.hl) { e.hl.setAttribute('x', bb.x - 6); e.hl.setAttribute('width', (bb.width + 12) * ease(clamp((t - e.t0 + 0.25) / (e.dur * 0.8), 0, 1))); }
+        break;
+      }
+      case 'wipe': e.cr.setAttribute('width', e.w * q); break;
+      case 'grow':
+        if (e.horizontal) e.rect.setAttribute('width', e.full * q);
+        else { const y0 = +e.rect.dataset.y0 || (e.rect.dataset.y0 = e.rect.getAttribute('y')); e.rect.setAttribute('height', e.full * q); e.rect.setAttribute('y', y0 - e.full * q); }
+        break;
+      case 'seq':
+        if (e.n > 0) { const k = clamp(Math.floor((t - e.t0) * e.fps), 0, e.n - 1); const href = `${e.prefix}${String(k).padStart(4, '0')}.jpg`;
+          if (e.im.getAttribute('href') !== href) e.im.setAttribute('href', href); }
+        break;
+    }
+  }
+}
+
+async function waitImages() {
+  const hrefs = [...document.querySelectorAll('image')].map(i => i.getAttribute('href'));
+  await Promise.all([...new Set(hrefs)].map(h => new Promise(res => { const im = new Image(); im.onload = im.onerror = res; im.src = h; })));
+}
+
+window.seek = async (t) => {
+  apply(t);
+  // wait for the current sequence frame to decode before the screenshot
+  const seq = els.filter(e => e.type === 'seq');
+  await Promise.all(seq.map(e => new Promise(res => { const im = new Image(); im.onload = im.onerror = res; im.src = e.im.getAttribute('href'); })));
+  return true;
+};
+
+window.ready = (async () => {
+  TL = await (await fetch('timeline.json')).json();
+  DATA = await (await fetch('assets/data.json')).json();
+  FAULTS = await (await fetch('assets/faults.json')).json();
+  TWINS = await (await fetch('assets/twins.json')).json();
+  try { WEBN = (await (await fetch('assets/web/count.json')).json()).n; } catch { WEBN = 0; }
+  for (const l of TL.lines) L[l.id] = l;
+  await document.fonts.ready;
+  build();
+  await waitImages();
+  apply(0);
+  return TL.total;
+})();
+</script>
+</body>
+</html>
