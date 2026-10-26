@@ -1,19 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { api, tokenKey } from "./api";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { api, tokenKey, type Incident } from "./api";
 import CameraDetail from "./screens/CameraDetail";
 import Demo from "./screens/Demo";
+import Docs from "./screens/Docs";
 import Fleet from "./screens/Fleet";
 import Incidents from "./screens/Incidents";
+import Landing from "./screens/Landing";
 import Performance from "./screens/Performance";
 import Traces from "./screens/Traces";
+import { ErrorNote, Icon, Logo, Skeleton, ThemeToggle, go, type Theme } from "./ui";
 
 const TABS = [
   { id: "fleet", label: "Fleet" },
   { id: "incidents", label: "Incidents" },
   { id: "traces", label: "Traces" },
   { id: "perf", label: "Performance" },
-  { id: "demo", label: "Demo control" },
+  { id: "demo", label: "Demo" },
+  { id: "docs", label: "Docs" },
 ] as const;
 
 function useHash(): string[] {
@@ -28,15 +32,17 @@ function useHash(): string[] {
 }
 
 function useTheme() {
-  const [theme, setTheme] = useState(() => localStorage.getItem("vd_theme") ?? "dark");
+  const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem("vd_theme") === "dark" ? "dark" : "light"));
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "dark" ? "#142408" : "#fcfaf5");
     localStorage.setItem("vd_theme", theme);
   }, [theme]);
   return [theme, () => setTheme(theme === "dark" ? "light" : "dark")] as const;
 }
 
 interface AuthConfig { auth: boolean; region: string; client_id: string | null }
+interface Health { status: string; opencv: string; agent: string; backend: string; is_cool?: boolean }
 
 async function cognitoSignIn(cfg: AuthConfig, username: string, password: string): Promise<string> {
   const res = await fetch(`https://cognito-idp.${cfg.region}.amazonaws.com/`, {
@@ -50,16 +56,16 @@ async function cognitoSignIn(cfg: AuthConfig, username: string, password: string
   return data.AuthenticationResult.IdToken as string; // ID token carries the email shown on approvals
 }
 
-function Settings({ onClose, cfg }: { onClose: () => void; cfg?: AuthConfig }) {
+/* ---------- full-page sign-in ---------- */
+function Login({ cfg, theme, toggleTheme }: { cfg?: AuthConfig; theme: Theme; toggleTheme: () => void }) {
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const signedIn = !!localStorage.getItem(tokenKey);
-  const signOut = () => { localStorage.removeItem(tokenKey); window.location.reload(); };
-  const submit = async (e: React.FormEvent) => {
+  useEffect(() => { if (cfg && !cfg.auth) go("fleet"); }, [cfg]);
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!cfg?.client_id) return;
+    if (!cfg?.client_id) { setErr("Sign-in is not configured on this deployment."); return; }
     setBusy(true); setErr(null);
     try {
       localStorage.setItem(tokenKey, await cognitoSignIn(cfg, user.trim(), pass));
@@ -67,31 +73,139 @@ function Settings({ onClose, cfg }: { onClose: () => void; cfg?: AuthConfig }) {
     } catch (x) { setErr((x as Error).message); } finally { setBusy(false); }
   };
   return (
-    <div className="panel absolute right-0 top-12 z-20 w-[min(22rem,calc(100vw-2rem))] p-4 shadow-xl" role="dialog" aria-label="Sign in">
-      <h2 className="label mb-2">{signedIn ? "Account" : "Sign in"}</h2>
-      {!cfg?.auth ? (
-        <p className="mb-3 text-xs text-muted">This deployment runs without authentication (local demo).</p>
-      ) : signedIn ? (
-        <p className="mb-3 text-xs text-muted">Signed in with Amazon Cognito.</p>
-      ) : (
-        <form onSubmit={submit} className="space-y-2">
-          <label className="block text-xs" htmlFor="vd-user">Email</label>
-          <input id="vd-user" className="field w-full" type="email" autoComplete="username" value={user} onChange={(e) => setUser(e.target.value)} required />
-          <label className="block text-xs" htmlFor="vd-pass">Password</label>
-          <input id="vd-pass" className="field w-full" type="password" autoComplete="current-password" value={pass} onChange={(e) => setPass(e.target.value)} required />
-          {err && <p role="alert" className="text-xs text-bad">{err}</p>}
-          <div className="flex justify-end gap-2 pt-1">
-            <button type="button" className="btn" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
-          </div>
+    <main className="stage" data-testid="login-screen">
+      <div className="absolute left-6 top-6"><Logo /></div>
+      <div className="absolute right-6 top-6 flex items-center gap-2">
+        <ThemeToggle theme={theme} toggle={toggleTheme} />
+        <a className="btn sm" href="#/about">About</a>
+      </div>
+      <section className="rise">
+        <span className="badge"><Icon name="eye" size={13} /> Operator console</span>
+        <h1 className="display mt-5 text-[clamp(40px,5.2vw,62px)] leading-none" style={{ letterSpacing: "0.04em" }}>
+          Every camera, <span className="hl wash">checked</span> before the AI trusts it.
+        </h1>
+        <p className="mt-5 max-w-[500px] text-[17px] leading-relaxed text-ink">
+          Sign in to see fleet health, approve technician dispatches and read every agent decision.
+        </p>
+        <form onSubmit={submit} className="mt-8 grid max-w-[420px] gap-3" aria-describedby={err ? "login-err" : undefined}>
+          <label className="grid gap-1.5">
+            <span className="micro">Email</span>
+            <input className="field" type="email" autoComplete="username" value={user} onChange={(e) => setUser(e.target.value)} required
+              placeholder="you@company.com" aria-invalid={!!err} />
+          </label>
+          <label className="grid gap-1.5">
+            <span className="micro">Password</span>
+            <input className="field" type="password" autoComplete="current-password" value={pass} onChange={(e) => setPass(e.target.value)} required aria-invalid={!!err} />
+          </label>
+          {err && <div id="login-err"><ErrorNote error={err} /></div>}
+          <button type="submit" className="btn primary big mt-2" disabled={busy || !cfg} data-testid="login-submit">
+            {busy ? <><Icon name="refresh" className="spin" /> Signing in…</> : <span className="arrow flex items-center gap-2">Sign in</span>}
+          </button>
+          <p className="text-xs muted">Amazon Cognito · your ID token stays in this browser.</p>
         </form>
-      )}
-      {(signedIn || !cfg?.auth) && (
-        <div className="mt-3 flex justify-end gap-2">
-          {signedIn && <button className="btn" onClick={signOut}>Sign out</button>}
-          <button className="btn" onClick={onClose}>Close</button>
+      </section>
+      <section aria-hidden className="relative mx-auto hidden w-full max-w-[440px] md:block">
+        <div className="sticky-back" />
+        <div className="card relative rotate-[2.5deg] p-5" style={{ borderColor: "var(--ink)" }}>
+          <div className="flex items-center justify-between"><span className="micro">cam-07 · loading dock</span><span className="tag teal sm"><Icon name="refresh" size={11} /> Repairing</span></div>
+          <div className="mt-4 space-y-2.5">
+            {[["Drift", 4], ["Haze", 1], ["Sharpness", 0], ["Glare", 0]].map(([n, s]) => (
+              <div key={n} className="grid grid-cols-[6rem_1fr] items-center gap-3">
+                <span className="text-sm font-medium text-ink">{n}</span>
+                <div className={`sev s${s}`}>{[1, 2, 3, 4, 5].map((i) => <i key={i} className={i <= (s as number) ? "on" : ""} />)}</div>
+              </div>
+            ))}
+          </div>
+          <div className="divider mt-4 pt-3 text-xs muted">realign applied → re-scan → verified</div>
         </div>
-      )}
+      </section>
+    </main>
+  );
+}
+
+/* ---------- console shell: the floating nav pill ---------- */
+function Shell({ active, theme, toggleTheme, cfg, children }: {
+  active: string; theme: Theme; toggleTheme: () => void; cfg?: AuthConfig; children: React.ReactNode;
+}) {
+  const health = useQuery({ queryKey: ["health"], queryFn: () => api<Health>("/health"), refetchInterval: 15000 });
+  const awaiting = useQuery({ queryKey: ["incidents", false], queryFn: () => api<Incident[]>("/api/incidents?state=open"), refetchInterval: 5000, enabled: active !== "docs" || !!localStorage.getItem(tokenKey) || cfg?.auth === false });
+  const [menu, setMenu] = useState<"" | "nav" | "acct">("");
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const off = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setMenu(""); };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setMenu(""); };
+    document.addEventListener("click", off); document.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("click", off); document.removeEventListener("keydown", esc); };
+  }, []);
+  useEffect(() => setMenu(""), [active]);
+  const h = health.data;
+  const st = health.error ? "bad" : h?.status === "ok" ? "ok" : "wait";
+  const pending = awaiting.data?.filter((i) => i.state === "awaiting_approval").length ?? 0;
+  const signedIn = !!localStorage.getItem(tokenKey);
+  const signOut = () => { localStorage.removeItem(tokenKey); window.location.hash = "#/"; window.location.reload(); };
+  const link = (t: (typeof TABS)[number], cls: string) => (
+    <a key={t.id} href={`#/${t.id}`} className={`${cls}${active === t.id ? " on" : ""}`} aria-current={active === t.id ? "page" : undefined}>
+      {t.label}
+      {t.id === "incidents" && pending > 0 && <span className="badge" aria-label={`${pending} awaiting approval`}>{pending}</span>}
+    </a>
+  );
+
+  return (
+    <>
+      <a href="#main" className="btn sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100]">Skip to content</a>
+      <div className="navwrap" ref={ref}>
+        <nav className="navpill relative" aria-label="Console">
+          <Logo href="#/fleet" />
+          <div className="navlinks hidden lg:flex">{TABS.map((t) => link(t, "navlink"))}</div>
+          <div className="navright ml-auto lg:ml-0">
+            <span className="apistat hidden xl:inline-flex" title={h ? `API ${h.status} · storage ${h.backend}` : "API unreachable"}>
+              <span className={`dot ${st}`} aria-hidden />
+              {health.error ? "API offline" : h ? (h.status === "ok" ? `OpenCV ${h.opencv}` : "API starting") : "connecting"}
+            </span>
+            {h && <span className="tag yellow mono hidden md:inline-flex" title="Which agent decides: Amazon Bedrock Nova or the deterministic policy">agent · {h.agent}</span>}
+            <span className={`dot ${st} xl:hidden`} role="img" aria-label={`API ${st === "ok" ? "online" : st === "wait" ? "starting" : "offline"}`} />
+            <ThemeToggle theme={theme} toggle={toggleTheme} />
+            <button className="btn sm icon" aria-label="Account" aria-expanded={menu === "acct"} aria-haspopup="menu"
+              onClick={(e) => { e.stopPropagation(); setMenu(menu === "acct" ? "" : "acct"); }}>
+              <Icon name="user" />
+            </button>
+            <button className="btn sm lg:hidden" aria-label="Sections menu" aria-expanded={menu === "nav"} aria-haspopup="menu"
+              onClick={(e) => { e.stopPropagation(); setMenu(menu === "nav" ? "" : "nav"); }}>
+              <Icon name="menu" /> <span className="hidden sm:inline">{TABS.find((t) => t.id === active)?.label ?? "Menu"}</span>
+            </button>
+          </div>
+          {menu === "nav" && (
+            <div className="menu right-2 top-[calc(100%+8px)] lg:hidden" role="menu">
+              {TABS.map((t) => link(t, "mi"))}
+              {h && <div className="divider mt-1 flex flex-wrap items-center gap-2 px-2.5 pb-1 pt-2.5">
+                <span className="apistat"><span className={`dot ${st}`} aria-hidden />OpenCV {h.opencv}</span>
+                <span className="tag yellow mono">agent · {h.agent}</span>
+              </div>}
+            </div>
+          )}
+          {menu === "acct" && (
+            <div className="menu right-2 top-[calc(100%+8px)]" role="menu">
+              <div className="mhead">
+                <div className="text-sm font-semibold text-ink">{signedIn ? "Signed in" : cfg?.auth ? "Not signed in" : "Local demo"}</div>
+                <div className="text-xs muted">{signedIn ? "Amazon Cognito · operator" : cfg?.auth ? "Sign in to act on incidents" : "This deployment runs without authentication."}</div>
+              </div>
+              <a className="mi" href="#/about" role="menuitem"><Icon name="eye" /> About VisionDoctor</a>
+              <a className="mi" href="https://github.com/LSUDOKO/VisionDoctor" target="_blank" rel="noreferrer" role="menuitem"><Icon name="github" /> GitHub</a>
+              {signedIn ? <button className="mi danger" onClick={signOut} role="menuitem"><Icon name="back" /> Sign out</button>
+                : cfg?.auth ? <a className="mi" href="#/login" role="menuitem"><Icon name="user" /> Sign in</a> : null}
+            </div>
+          )}
+        </nav>
+      </div>
+      <main id="main" className="shell">{children}</main>
+    </>
+  );
+}
+
+function Boot() {
+  return (
+    <div className="grid min-h-dvh place-items-center" role="status" aria-label="Loading">
+      <div className="flex flex-col items-center gap-4"><Logo word={false} size={44} /><Skeleton className="h-1.5 w-32" /></div>
     </div>
   );
 }
@@ -99,61 +213,26 @@ function Settings({ onClose, cfg }: { onClose: () => void; cfg?: AuthConfig }) {
 export default function App() {
   const parts = useHash();
   const [theme, toggleTheme] = useTheme();
-  const [settings, setSettings] = useState(false);
   const config = useQuery({ queryKey: ["config"], queryFn: () => api<AuthConfig>("/api/config"), staleTime: Infinity });
-  const needsLogin = !!config.data?.auth && !localStorage.getItem(tokenKey);
-  useEffect(() => { if (needsLogin) setSettings(true); }, [needsLogin]);
-  const health = useQuery({ queryKey: ["health"], queryFn: () => api<{ status: string; opencv: string; agent: string; backend: string }>("/health"), refetchInterval: 15000 });
-  const [tab, id] = parts;
-  const active = tab === "camera" ? "fleet" : (TABS.find((t) => t.id === tab)?.id ?? "fleet");
-  const h = health.data;
+  const token = localStorage.getItem(tokenKey);
+  const [tab = "", id] = parts;
 
+  if (tab === "about" || (tab === "" && !token)) return <Landing theme={theme} toggleTheme={toggleTheme} signedIn={!!token} />;
+  if (config.isLoading) return <Boot />;
+  const needsLogin = !!config.data?.auth && !token;
+  if (tab === "login" || (needsLogin && tab !== "docs")) return <Login cfg={config.data} theme={theme} toggleTheme={toggleTheme} />;
+
+  const active = tab === "camera" ? "fleet" : (TABS.find((t) => t.id === tab)?.id ?? "fleet");
   return (
-    <div className="mx-auto min-h-screen max-w-[1440px] px-4 pb-16 sm:px-6">
-      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 btn">Skip to content</a>
-      <header className="flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-line py-4">
-        <div className="flex items-center gap-3">
-          <svg aria-hidden width="34" height="34" viewBox="0 0 32 32" className="text-accent">
-            <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" strokeWidth="2.5" />
-            <circle cx="16" cy="16" r="5" fill="currentColor" />
-            <path d="M3 16h5M24 16h5" stroke="currentColor" strokeWidth="2" />
-          </svg>
-          <div>
-            <h1 className="text-lg font-bold leading-tight tracking-tight">VisionDoctor</h1>
-            <p className="text-xs text-muted">The AI that watches the cameras</p>
-          </div>
-        </div>
-        <nav role="tablist" aria-label="Sections" className="no-scrollbar order-3 -mx-1 flex w-full gap-1 overflow-x-auto md:order-none md:w-auto">
-          {TABS.map((t) => (
-            <a key={t.id} role="tab" aria-selected={active === t.id} href={`#/${t.id}`}
-              className={`whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium ${active === t.id ? "bg-accent/15 text-accent" : "text-muted hover:text-fg"}`}>
-              {t.label}
-            </a>
-          ))}
-        </nav>
-        <div className="relative ml-auto flex items-center gap-2">
-          <span className="hidden items-center gap-1.5 font-mono text-xs text-muted lg:flex"
-            title={h ? `API ${h.status}; OpenCV ${h.opencv}; agent ${h.agent}; storage ${h.backend}` : "API unreachable"}>
-            <span aria-hidden className={`h-2 w-2 rounded-full ${h?.status === "ok" ? "bg-ok" : "bg-crit"}`} />
-            {h ? `API ${h.status} · OpenCV ${h.opencv} · ${h.agent}` : "API offline"}
-          </span>
-          <button className="btn" onClick={toggleTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}>
-            <span aria-hidden>{theme === "dark" ? "☀" : "☾"}</span>
-          </button>
-          <button className="btn" onClick={() => setSettings(!settings)} aria-expanded={settings}>
-            {localStorage.getItem(tokenKey) ? "Signed in" : "Sign in"}
-          </button>
-          {settings && <Settings cfg={config.data} onClose={() => setSettings(false)} />}
-        </div>
-      </header>
-      <main id="main" className="pt-6">
-        {tab === "camera" && id ? <CameraDetail id={id} />
-          : active === "incidents" ? <Incidents />
-          : active === "traces" ? <Traces id={id} />
-          : active === "perf" ? <Performance />
-          : active === "demo" ? <Demo />
-          : <Fleet />}
-      </main>
-    </div>
+    <Shell active={active} theme={theme} toggleTheme={toggleTheme} cfg={config.data}>
+      {config.error && <div className="mb-5"><ErrorNote error={`Backend unreachable: ${(config.error as Error).message}`} /></div>}
+      {tab === "camera" && id ? <CameraDetail id={id} />
+        : active === "incidents" ? <Incidents />
+        : active === "traces" ? <Traces id={id} />
+        : active === "perf" ? <Performance />
+        : active === "demo" ? <Demo />
+        : active === "docs" ? <Docs />
+        : <Fleet />}
+    </Shell>
   );
 }
