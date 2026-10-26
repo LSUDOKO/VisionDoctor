@@ -15,7 +15,7 @@ import numpy as np
 from visiondoctor.health.checks.base import ScanContext
 from visiondoctor.health.types import CheckResult, band
 
-FRAC_EDGES = (0.06, 0.1, 0.16, 0.25, 0.4)
+FRAC_EDGES = (0.04, 0.07, 0.12, 0.2, 0.35)
 LOW, HIGH = 0.02, 0.6
 DEFOCUS_FRAC = 0.75
 PERSIST_SCANS = 3
