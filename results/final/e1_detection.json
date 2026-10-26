@@ -1,0 +1,766 @@
+{
+  "n_scans": 1216,
+  "videos": [
+    "MOT17-02",
+    "MOT17-04",
+    "MOT17-09",
+    "vtest"
+  ],
+  "clean_bursts": 16,
+  "clean_alarm_rate": 0.0,
+  "baseline_clean_alarm_rate": 0.0,
+  "recall_sev3plus": 0.911,
+  "baseline_recall_sev3plus": 0.239,
+  "faults": {
+    "drift": {
+      "per_severity": {
+        "1": {
+          "recall": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "2": {
+          "recall": 0.75,
+          "ci95": [
+            0.5625,
+            0.9375
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "3": {
+          "recall": 0.75,
+          "ci95": [
+            0.5625,
+            0.9375
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "4": {
+          "recall": 0.75,
+          "ci95": [
+            0.5625,
+            0.9375
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "5": {
+          "recall": 0.75,
+          "ci95": [
+            0.5625,
+            0.9375
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        }
+      },
+      "precision_sev3plus": 0.783
+    },
+    "vibration": {
+      "per_severity": {
+        "1": {
+          "recall": 0.438,
+          "ci95": [
+            0.1875,
+            0.6875
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "2": {
+          "recall": 0.938,
+          "ci95": [
+            0.8125,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "3": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "4": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "5": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        }
+      },
+      "precision_sev3plus": 1.0
+    },
+    "haze": {
+      "per_severity": {
+        "1": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "2": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "3": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "4": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "5": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.25,
+          "n": 16
+        }
+      },
+      "precision_sev3plus": 1.0
+    },
+    "condensation": {
+      "per_severity": {
+        "1": {
+          "recall": 0.5,
+          "ci95": [
+            0.25,
+            0.75
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "2": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "3": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "4": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "5": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        }
+      },
+      "precision_sev3plus": 1.0
+    },
+    "glare": {
+      "per_severity": {
+        "1": {
+          "recall": 0.938,
+          "ci95": [
+            0.8125,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "2": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "3": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "4": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "5": {
+          "recall": 0.312,
+          "ci95": [
+            0.125,
+            0.5625
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        }
+      },
+      "precision_sev3plus": 0.974
+    },
+    "exposure": {
+      "per_severity": {
+        "1": {
+          "recall": 0.188,
+          "ci95": [
+            0.0,
+            0.375
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "2": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "3": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "4": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.25,
+          "n": 16
+        },
+        "5": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.25,
+          "n": 16
+        }
+      },
+      "precision_sev3plus": 0.814
+    },
+    "color_cast": {
+      "per_severity": {
+        "1": {
+          "recall": 0.188,
+          "ci95": [
+            0.0,
+            0.375
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "2": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "3": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "4": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "5": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        }
+      },
+      "precision_sev3plus": 0.8
+    },
+    "ir_cut_stuck": {
+      "per_severity": {
+        "1": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "2": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "3": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "4": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "5": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        }
+      },
+      "precision_sev3plus": 0.8
+    },
+    "noise": {
+      "per_severity": {
+        "1": {
+          "recall": 0.688,
+          "ci95": [
+            0.4375,
+            0.875
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "2": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "3": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "4": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "5": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        }
+      },
+      "precision_sev3plus": 0.254
+    },
+    "occlusion": {
+      "per_severity": {
+        "1": {
+          "recall": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "2": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "3": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "4": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "5": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 1.0,
+          "n": 16
+        }
+      },
+      "precision_sev3plus": 0.828
+    },
+    "smudge": {
+      "per_severity": {
+        "1": {
+          "recall": 0.375,
+          "ci95": [
+            0.1875,
+            0.625
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "2": {
+          "recall": 0.625,
+          "ci95": [
+            0.375,
+            0.875
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "3": {
+          "recall": 0.812,
+          "ci95": [
+            0.625,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "4": {
+          "recall": 0.812,
+          "ci95": [
+            0.625,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "5": {
+          "recall": 0.875,
+          "ci95": [
+            0.6875,
+            1.0
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        }
+      },
+      "precision_sev3plus": 0.8
+    },
+    "spider_web": {
+      "per_severity": {
+        "1": {
+          "recall": 0.312,
+          "ci95": [
+            0.125,
+            0.5625
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "2": {
+          "recall": 0.312,
+          "ci95": [
+            0.125,
+            0.5625
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "3": {
+          "recall": 0.312,
+          "ci95": [
+            0.125,
+            0.5625
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "4": {
+          "recall": 0.312,
+          "ci95": [
+            0.125,
+            0.5625
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        },
+        "5": {
+          "recall": 0.312,
+          "ci95": [
+            0.125,
+            0.5625
+          ],
+          "baseline_recall": 0.0,
+          "n": 16
+        }
+      },
+      "precision_sev3plus": 1.0
+    },
+    "defocus": {
+      "per_severity": {
+        "1": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 0.25,
+          "n": 16
+        },
+        "2": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 1.0,
+          "n": 16
+        },
+        "3": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 1.0,
+          "n": 16
+        },
+        "4": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 1.0,
+          "n": 16
+        },
+        "5": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 1.0,
+          "n": 16
+        }
+      },
+      "precision_sev3plus": 0.941
+    },
+    "freeze": {
+      "per_severity": {
+        "1": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 1.0,
+          "n": 16
+        },
+        "2": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 1.0,
+          "n": 16
+        },
+        "3": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 1.0,
+          "n": 16
+        },
+        "4": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 1.0,
+          "n": 16
+        },
+        "5": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 1.0,
+          "n": 16
+        }
+      },
+      "precision_sev3plus": 0.75
+    },
+    "dead": {
+      "per_severity": {
+        "1": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 1.0,
+          "n": 16
+        },
+        "2": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 1.0,
+          "n": 16
+        },
+        "3": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 1.0,
+          "n": 16
+        },
+        "4": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 1.0,
+          "n": 16
+        },
+        "5": {
+          "recall": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "baseline_recall": 1.0,
+          "n": 16
+        }
+      },
+      "precision_sev3plus": 0.75
+    }
+  }
+}

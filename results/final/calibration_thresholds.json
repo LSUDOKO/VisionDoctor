@@ -1,0 +1,82 @@
+{
+  "clean_bursts": 32,
+  "videos": [
+    "MOT17-02",
+    "MOT17-04",
+    "MOT17-09",
+    "vtest"
+  ],
+  "checks": {
+    "sharpness": {
+      "metric": "loss",
+      "p50": 0.029,
+      "p99_5": 0.1522,
+      "first_band_edge": 0.3,
+      "margin_ok": true
+    },
+    "drift": {
+      "metric": "disp_pct_diag",
+      "p50": 0.0,
+      "p99_5": 0.0703,
+      "first_band_edge": 0.4,
+      "margin_ok": true
+    },
+    "vibration": {
+      "metric": "jitter_px",
+      "p50": 0.0276,
+      "p99_5": 0.1935,
+      "first_band_edge": 0.8,
+      "margin_ok": true
+    },
+    "haze": {
+      "metric": "contrast_loss",
+      "p50": 0.0,
+      "p99_5": 0.0412,
+      "first_band_edge": 0.12,
+      "margin_ok": true
+    },
+    "glare": {
+      "metric": "delta_frac",
+      "p50": 0.001,
+      "p99_5": 0.0039,
+      "first_band_edge": 0.01,
+      "margin_ok": true
+    },
+    "exposure": {
+      "metric": "lum_delta_rel",
+      "p50": 0.0155,
+      "p99_5": 0.0777,
+      "first_band_edge": 0.15,
+      "margin_ok": true
+    },
+    "occlusion": {
+      "metric": "occluded_frac",
+      "p50": 0.004,
+      "p99_5": 0.0195,
+      "first_band_edge": 0.04,
+      "margin_ok": true
+    },
+    "smudge": {
+      "metric": "candidate_tiles",
+      "p50": 0.0,
+      "p99_5": 9.845,
+      "first_band_edge": null,
+      "margin_ok": null,
+      "note": "severity also needs 3-scan persistence; candidate tile count shown"
+    },
+    "color_cast": {
+      "metric": "lab_dist",
+      "p50": 0.3394,
+      "p99_5": 1.7157,
+      "first_band_edge": 3.0,
+      "margin_ok": true
+    },
+    "noise": {
+      "metric": "ratio",
+      "p50": 0.9443,
+      "p99_5": 1.4032,
+      "first_band_edge": 1.5,
+      "margin_ok": true
+    }
+  }
+}
