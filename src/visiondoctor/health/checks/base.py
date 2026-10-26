@@ -11,6 +11,7 @@ import numpy as np
 
 from visiondoctor.health.features import TILE_METRICS, FrameFeatures
 from visiondoctor.health.reference import RefBucket, Reference
+from visiondoctor.health.types import CheckResult
 
 
 @dataclass
@@ -22,6 +23,8 @@ class CameraState:
     )
     static_fg: np.ndarray | None = None  # running AND of foreground masks (uint8 tile grid)
     static_fg_scans: int = 0
+    static_fg_since: float | None = None
+    smudge_hist: list[np.ndarray] = field(default_factory=list)  # last scans' smudged tiles
     frozen_since: float | None = None
     last_thumb: str | None = None
 
@@ -36,6 +39,11 @@ class ScanContext:
     state: CameraState
     now: float = field(default_factory=time.time)
     grid: int = 8
+    results: dict[str, CheckResult] = field(default_factory=dict)  # earlier checks in this scan
+
+    def sev(self, name: str) -> int:
+        r = self.results.get(name)
+        return r.severity if r else 0
 
     @cached_property
     def glob(self) -> dict[str, float]:
@@ -53,9 +61,21 @@ class ScanContext:
         edge = self.bucket.tile_mean["edge"]
         return edge > max(0.01, 0.15 * float(np.median(edge)))
 
+    @cached_property
+    def static_tiles(self) -> np.ndarray:
+        """Tiles that were mostly static during calibration (no traffic/pedestrians)."""
+        g = self.grid
+        frac = cv2.resize(self.bucket.static_mask, (g, g), interpolation=cv2.INTER_AREA) / 255.0
+        return np.asarray(frac > 0.6)
+
     def ratio(self, key: str) -> float:
         ref = self.bucket.glob_mean[key]
         return self.glob[key] / ref if abs(ref) > 1e-9 else 1.0
+
+    def lum_ratio_pct(self, q: float) -> float:
+        """Percentile of per-tile luminance ratio: uniform for gain, skewed for local light."""
+        r = self.tiles["lum"] / np.maximum(self.bucket.tile_mean["lum"], 5.0)
+        return float(np.percentile(r, q))
 
     def tile_ratio(self, metric: str, cur: np.ndarray | None = None) -> np.ndarray:
         c = self.tiles[metric] if cur is None else cur
