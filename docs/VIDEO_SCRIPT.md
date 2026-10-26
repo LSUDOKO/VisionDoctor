@@ -120,11 +120,56 @@ Times are estimates (~2.7 words/s); the build times each shot to the real length
 | 119 scans/min, $7.55 per 1M scans on Graviton4 c8g.large | `results/final/bench_graviton4_c8g_large.json` |
 | Live on AWS Graviton4 in Mumbai (CloudFront, Cognito, S3, DynamoDB, Bedrock Nova) | `results/final/aws_outputs.json` |
 
-## Build plan (after the script is approved)
+## Final narration (as rendered, real timings)
 
-1. Voice each line with edge-tts AriaNeural; time every shot to the real audio length.
-2. One HTML file (1920×1080) where every style is computed from time inside `window.seek(t)`: no CSS animations,
-   timers or carried state.
-3. Render with Playwright (your Chrome) at 60 fps with 3 subframes per frame, blended with ffmpeg `tmix` for motion
-   blur; mux the narration, a quiet music bed and line-by-line subtitles.
-4. Before the full render, export one key frame per section and fix anything crowded or hard to read.
+Total length **297.1 s** (under 5:00). Voice: edge-tts `en-US-AriaNeural` (+6% rate).
+Added after the first draft: a live-website segment recorded on the deployed CloudFront URL (fleet → camera detail
+with the before/after slider → incident queue → a live Bedrock trace where the guard blocks a wrong repair id),
+a research line pointing at the evaluation, and an innovation line. The label-free target example shows the real
+measured agreement (0.81) of YOLOX on a clean vs hazy MOT17 frame; the AWS diagram uses the official AWS
+Architecture Icons (npm `aws-icons` 3.2.0).
+
+| # | Start | Scene | Narration |
+|---|---|---|---|
+| 1 | 0:01.0 | hook | When a city camera stops working, who notices? |
+| 2 | 0:04.9 | hook | Audits found that in Philadelphia, only 32 percent of sampled police cameras were working properly. |
+| 3 | 0:11.8 | hook | In Pittsburgh, 45 of 163 cameras were not fully operational. Baltimore did not even track camera uptime. |
+| 4 | 0:21.1 | hook | And the AI on those cameras fails silently with them. Detectors can fall to 30 to 60 percent of their clean performance on corrupted images. |
+| 5 | 0:31.5 | intro | This is VisionDoctor: the AI that watches the cameras, so every other camera AI can be trusted. |
+| 6 | 0:38.5 | intro | It runs one loop. Scan, predict the damage, repair, verify, or call a human. |
+| 7 | 0:46.5 | scan | Step one: scan. Each camera first learns what healthy looks like, from its own clean footage. |
+| 8 | 0:53.9 | scan | Then eleven OpenCV 5 checks compare every new burst of frames against that reference. |
+| 9 | 1:00.1 | scan | Here the camera has been knocked five degrees. ORB features and a USAC MAGSAC homography measure the drift exactly. |
+| 10 | 1:08.8 | scan | Other checks catch haze, glare, smudges, occlusion, noise, colour casts, blur, exposure and frozen streams. |
+| 11 | 1:17.2 | scan | On real MOT17 street footage, VisionDoctor catches 91 percent of severe faults. A classic tamper detector catches 24. |
+| 12 | 1:28.2 | impact | Step two is our key idea. How much accuracy has the AI on this camera lost, with no labels at all? |
+| 13 | 1:36.2 | impact | In simulation, every degraded frame has an identical clean twin. How well the detector agrees with itself across the twins becomes the training target. |
+| 14 | 1:46.4 | impact | A gradient boosted model learns to predict that loss from the health signals alone. |
+| 15 | 1:51.8 | impact | Checked against real human labels, its predictions rank the true accuracy drop with a correlation of 0.5. |
+| 16 | 2:00.2 | repair | Step three: repair what software can fix. Realign, exposure, dehaze, white balance and denoise. |
+| 17 | 2:08.6 | repair | Every repair is bounded, and it only counts if a fresh scan and a fresh prediction confirm the recovery. |
+| 18 | 2:15.4 | repair | For drift, realignment restored 92 percent of the lost person detection accuracy, from 0.11 to 0.35 average precision. The clean camera scores 0.34. |
+| 19 | 2:28.9 | repair | If verification fails, the repair is rolled back, and the fault is escalated. |
+| 20 | 2:35.1 | agent | Step four: the agent. It reasons on Amazon Bedrock, but it never touches pixels or AWS directly. |
+| 21 | 2:43.9 | agent | It acts only through thirteen MCP tools, and a guard checks every single call. |
+| 22 | 2:49.7 | agent | In a live run, the model passed the wrong repair id. The guard blocked it. The agent re-planned, verified the fix, and only then closed the incident. |
+| 23 | 3:01.2 | agent | Physical faults, like a dirty lens, go to a person, ranked by predicted harm times camera importance, with faces blurred in the evidence. |
+| 24 | 3:10.2 | agent | Across forty simulated incidents, it chose the right outcome 75 percent of the time, and cut operator alerts by 65 percent. |
+| 25 | 3:19.9 | cloud | Step five: the cloud. VisionDoctor is live on AWS Graviton4 in Mumbai, behind CloudFront and Cognito, with S3, DynamoDB and Bedrock. |
+| 26 | 3:32.2 | cloud | One small Graviton instance scans twelve HD cameras 119 times a minute. That is about seven and a half dollars per million scans. |
+| 27 | 3:43.0 | web | Here is the real console, running live on AWS right now. |
+| 28 | 3:47.9 | web | Every camera shows its health and its predicted AI accuracy. Open one, and compare the reference with the live view. |
+| 29 | 3:56.3 | web | Incidents wait for one-click approval, and every agent decision can be replayed, step by step. |
+| 30 | 4:03.5 | research | Every number you have seen comes from our evaluation scripts on real labelled footage, with confidence intervals, and failure cases in the report. |
+| 31 | 4:12.4 | research | What is new: label-free impact prediction, repairs that must prove themselves, technician-ready descriptions, and a queue ranked by real harm. |
+| 32 | 4:22.1 | who | That helps security teams know which cameras really work, traffic teams trust their counts, factories catch drifting cameras, and technicians arrive with the right tool. |
+| 33 | 4:32.3 | who | It is not perfect. Crowded scenes still cause false alarms, and we say so. |
+| 34 | 4:39.4 | payoff | Scan, predict, repair, verify, escalate. Cameras you can trust, so the AI on them can be trusted too. |
+| 35 | 4:48.3 | payoff | VisionDoctor. Built with OpenCV 5, on AWS. |
+
+## How it is built (reproducible)
+
+`video/` — `make_assets.py` (real frames, faults, detections, charts from `results/final`), `tts.py` (voice +
+timeline + subtitles), `record_web.py` + `cut_web.py` (live-site capture; needs `VD_JUDGE_USER`, `VD_JUDGE_PASS`,
+`VD_TOKEN` env vars), `index.html` (one deterministic `window.seek(t)` scene), `render.py` (Playwright/Chrome, 60 fps,
+3 subframes blended with ffmpeg `tmix`), `mux.sh` (narration + ducked pad + burned subtitles).
