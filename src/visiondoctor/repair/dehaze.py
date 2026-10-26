@@ -23,9 +23,12 @@ def guided_filter(guide: np.ndarray, src: np.ndarray, r: int = 40, eps: float = 
 
 
 def airlight(img: np.ndarray, dc: np.ndarray) -> np.ndarray:
+    """Atmospheric light from the brightest 0.1% dark-channel pixels, kept achromatic: fog and
+    condensation scatter all wavelengths alike, and a tinted estimate would add a colour cast."""
     n = max(int(dc.size * 0.001), 1)
     idx = np.argpartition(dc.ravel(), -n)[-n:]
-    return np.asarray(img.reshape(-1, 3)[idx].astype(np.float64).max(axis=0))
+    a = img.reshape(-1, 3)[idx].astype(np.float64).max(axis=0)
+    return np.full(3, a.mean())
 
 
 @timed("dehaze")
