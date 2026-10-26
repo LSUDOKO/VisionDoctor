@@ -14,3 +14,4 @@ if [ "${VD_VLM:-0}" = "1" ]; then
   for f in siglip.onnx embedding.onnx gemma.onnx tokenizer.json; do fetch "$R/$f" "models/paligemma2/$f" || echo "missing $f (check repo file names)"; done
 fi
 sha256sum models/*.onnx
+curl -fsSL -o models/face_sample.jpg $B/face_detection_yunet/resolve/main/example_outputs/largest_selfie.jpg || true
