@@ -13,7 +13,7 @@ face-blurred evidence. An agent (deterministic policy or Amazon Bedrock Converse
 server**, behind a guard, with a full trace. Headline results: fault-detection recall **0.911** at severity ≥ 3 vs
 **0.239** for a classic tamper-detector baseline with **0** alarms on clean bursts (E1); verified realignment restores
 **92%** of the person-detection AP lost to drift on real MOT17 labels (0.114 → 0.346; E4); the label-free impact
-predictor ranks true MOT17 AP drops with Spearman ρ **0.50** (95% CI 0.42–0.58; E3).
+predictor ranks true MOT17 AP drops with Spearman ρ **0.50** (95% CI 0.42–0.58; E3); the policy agent picks the correct outcome for **80%** of generated incidents while cutting operator alerts by **50%** vs alarm-only (E5).
 
 ## 2. Problem and users
 
@@ -125,7 +125,16 @@ Colour cast: verified 100%; haze: 78%; exposure: 82%; noise: 62% (fails at sever
 and noise the detector lost little AP (clean 0.338 vs degraded 0.31–0.35), so "accuracy recovered" is not meaningful
 there (CIs span zero) — YOLOX is robust to these photometric faults at our severities; geometric faults hurt most.
 
-**E5 — agent** — see `results/final/e5_agent_policy.json` and §8 addendum below.
+**E5 — agent** (`results/final/e5_agent_policy.json`, 40 generated incidents on a 4-camera simulated fleet, policy
+agent). Correct outcome **0.80** (95% CI 0.68–0.93). Operator alerts: 20 vs 40 for an alarm-only baseline →
+**50% workload reduction** with 18/20 needed escalations raised (2 missed, 2 unnecessary). All 7 transient glares closed
+as transient with no alert; 7 software faults auto-fixed and verified. Main error: 4 fixable faults ended as "watch"
+because verification rejected the repair (predicted accuracy did not recover) — a conservative failure. Mean 5.1 tool
+calls and 1.0 s per incident; detection took 2.15 scans on average (2-scan hysteresis); **100%** of decisions carry an
+OpenCV output summary and a reason in the trace. The Bedrock agent could not be evaluated (account access, §7).
+An earlier run (before the verify rule below and with the 10 incidents/min rate limit active) scored 0.60; the fix:
+when the predicted loss is < 0.15, verification requires "no predicted harm" (within the predictor's ~0.1 MAE)
+instead of 50% recovery, which predictor noise decided.
 
 ## 9. Limitations and failure cases
 
