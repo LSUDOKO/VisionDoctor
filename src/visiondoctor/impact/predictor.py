@@ -93,7 +93,8 @@ def predict_impact(
     pred = get_predictor()
     if pred is None:
         # Untrained fallback: monotone in the worst check (a single local fault can still hurt).
-        worst = min((c.score for c in report.checks.values()), default=1.0)
+        # Photometric noise counts half: E4 shows the detector barely loses AP to it.
+        worst = min((1 - c.severity / 10 if c.name == "noise" else c.score for c in report.checks.values()), default=1.0)
         m = lo = hi = 0.25 + 0.75 * worst
         model = "heuristic"
     else:
