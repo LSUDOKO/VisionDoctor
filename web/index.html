@@ -1,13 +1,18 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="VisionDoctor — the AI that watches the cameras" />
+    <meta name="description" content="VisionDoctor: the AI that watches the cameras, so every other camera AI can be trusted." />
+    <meta name="theme-color" content="#fcfaf5" />
     <title>VisionDoctor</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='13' fill='none' stroke='%2322d3ee' stroke-width='3'/><circle cx='16' cy='16' r='5' fill='%2322d3ee'/></svg>" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect x='2' y='2' width='36' height='36' rx='9' fill='%23ffe95c'/><path d='M9.5 14.5l4.6 11.3 4.4-11.3M31 9.5v16.6M31 19.6c-1.6-3-7.4-2.6-7.7 2-.3 4.6 5.4 6.2 7.7 2.6' fill='none' stroke='%231a3300' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/></svg>" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" />
+    <script>
+      try { var t = localStorage.getItem("vd_theme"); if (t === "dark" || t === "light") document.documentElement.dataset.theme = t; } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
