@@ -1,0 +1,177 @@
+{
+  "available": true,
+  "configs": {
+    "local-x86": {
+      "instance_type": null,
+      "is_cool": false,
+      "cv2_version": "5.0.0",
+      "threads": 16,
+      "scans_per_min": 101.0697030390749,
+      "scan_p50_ms": 568.1377139990218,
+      "scan_p95_ms": 626.836182549232,
+      "usd_per_1M_scans": null
+    }
+  },
+  "ops": [
+    {
+      "op": "resize@1080p",
+      "config": "local-x86",
+      "median_ms": 0.2045
+    },
+    {
+      "op": "cvtColor@1080p",
+      "config": "local-x86",
+      "median_ms": 1.924
+    },
+    {
+      "op": "GaussianBlur@1080p",
+      "config": "local-x86",
+      "median_ms": 2.8593
+    },
+    {
+      "op": "Laplacian@1080p",
+      "config": "local-x86",
+      "median_ms": 0.8333
+    },
+    {
+      "op": "Sobel@1080p",
+      "config": "local-x86",
+      "median_ms": 1.0507
+    },
+    {
+      "op": "Canny@1080p",
+      "config": "local-x86",
+      "median_ms": 2.6521
+    },
+    {
+      "op": "adaptiveThreshold@1080p",
+      "config": "local-x86",
+      "median_ms": 5.1471
+    },
+    {
+      "op": "morphologyEx@1080p",
+      "config": "local-x86",
+      "median_ms": 0.9401
+    },
+    {
+      "op": "findContours@1080p",
+      "config": "local-x86",
+      "median_ms": 7.761
+    },
+    {
+      "op": "warpPerspective@1080p",
+      "config": "local-x86",
+      "median_ms": 2.9185
+    },
+    {
+      "op": "remap@1080p",
+      "config": "local-x86",
+      "median_ms": 2.5672
+    },
+    {
+      "op": "calcHist@1080p",
+      "config": "local-x86",
+      "median_ms": 0.275
+    },
+    {
+      "op": "filter2D@1080p",
+      "config": "local-x86",
+      "median_ms": 1.6198
+    },
+    {
+      "op": "dft@1080p",
+      "config": "local-x86",
+      "median_ms": 13.1868
+    },
+    {
+      "op": "calcOpticalFlowPyrLK@1080p",
+      "config": "local-x86",
+      "median_ms": 1.9684
+    },
+    {
+      "op": "findHomography@1080p",
+      "config": "local-x86",
+      "median_ms": 1.7692
+    },
+    {
+      "op": "resize@4k",
+      "config": "local-x86",
+      "median_ms": 1.8552
+    },
+    {
+      "op": "cvtColor@4k",
+      "config": "local-x86",
+      "median_ms": 7.5359
+    },
+    {
+      "op": "GaussianBlur@4k",
+      "config": "local-x86",
+      "median_ms": 10.6901
+    },
+    {
+      "op": "Laplacian@4k",
+      "config": "local-x86",
+      "median_ms": 5.1329
+    },
+    {
+      "op": "Sobel@4k",
+      "config": "local-x86",
+      "median_ms": 5.2982
+    },
+    {
+      "op": "Canny@4k",
+      "config": "local-x86",
+      "median_ms": 9.5274
+    },
+    {
+      "op": "adaptiveThreshold@4k",
+      "config": "local-x86",
+      "median_ms": 20.5748
+    },
+    {
+      "op": "morphologyEx@4k",
+      "config": "local-x86",
+      "median_ms": 5.5137
+    },
+    {
+      "op": "findContours@4k",
+      "config": "local-x86",
+      "median_ms": 10.4658
+    },
+    {
+      "op": "warpPerspective@4k",
+      "config": "local-x86",
+      "median_ms": 11.7359
+    },
+    {
+      "op": "remap@4k",
+      "config": "local-x86",
+      "median_ms": 10.7288
+    },
+    {
+      "op": "calcHist@4k",
+      "config": "local-x86",
+      "median_ms": 1.2917
+    },
+    {
+      "op": "filter2D@4k",
+      "config": "local-x86",
+      "median_ms": 5.8387
+    },
+    {
+      "op": "dft@4k",
+      "config": "local-x86",
+      "median_ms": 13.2425
+    },
+    {
+      "op": "calcOpticalFlowPyrLK@4k",
+      "config": "local-x86",
+      "median_ms": 4.4954
+    },
+    {
+      "op": "findHomography@4k",
+      "config": "local-x86",
+      "median_ms": 1.8794
+    }
+  ]
+}
