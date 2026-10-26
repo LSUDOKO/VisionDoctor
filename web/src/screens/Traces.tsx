@@ -1,45 +1,54 @@
 import { useQuery } from "@tanstack/react-query";
 import { api, type Trace } from "../api";
-import { ErrorNote, Loading, ago, go, ms } from "../ui";
+import { Empty, ErrorNote, Icon, Skeleton, Tag, Tip, ago, go, human, ms } from "../ui";
 
 const blocked = (g: string) => !/^(allowed|ok|allow|pass)/i.test(g);
 
 function TraceView({ id }: { id: string }) {
   const q = useQuery({ queryKey: ["trace", id], queryFn: () => api<Trace>(`/api/traces/${id}`), refetchInterval: 5000 });
   if (q.error) return <ErrorNote error={q.error} />;
-  if (!q.data) return <Loading what="trace" />;
+  if (!q.data) return <div className="space-y-3"><Skeleton className="h-28 w-full" />{[0, 1, 2].map((i) => <Skeleton key={i} className="h-20 w-full" />)}</div>;
   const t = q.data;
+  const changed = t.steps.filter((s) => s.changed_plan).length;
+  const nBlocked = t.steps.filter((s) => blocked(s.guard)).length;
   return (
-    <div className="space-y-4">
-      <div className="panel grid grid-cols-2 gap-3 p-4 sm:grid-cols-3 lg:grid-cols-6">
-        {[
-          ["Trace", t.trace_id, "Unique id of this agent run."],
-          ["Camera", t.camera_id, "Camera the agent was investigating."],
-          ["Agent", `${t.agent}${t.model ? ` · ${t.model}` : ""}`, "Which agent ran (LLM-based or rule-based policy) and its model."],
-          ["Outcome", t.outcome.replace(/_/g, " "), "How the agent closed the incident."],
-          ["Total", ms(t.total_ms), "Wall-clock time from incident open to the agent's decision."],
-          ["Tokens", `${t.tokens_in ?? 0} in / ${t.tokens_out ?? 0} out`, "LLM tokens used (0 for the rule-based policy agent)."],
-        ].map(([l, v, h]) => (
-          <div key={l} title={h} className="min-w-0"><div className="label">{l}</div><div className="num truncate text-sm font-semibold">{v}</div></div>
-        ))}
-      </div>
-      <ol className="relative ml-3 space-y-3 border-l border-line pl-6">
+    <div className="space-y-5">
+      <section className="card p-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <Tag tone="yellow" mono>{t.agent}{t.model ? ` · ${t.model}` : ""}</Tag>
+          <Tag tone="line" mono>{t.trace_id}</Tag>
+          <a href={`#/camera/${t.camera_id}`} className="tag line mono no-underline hover:border-[var(--ink)]">{t.camera_id}</a>
+          <span className="ml-auto text-xs muted">started {ago(t.started)}</span>
+        </div>
+        <h2 className="display mt-4 text-2xl">{human(t.outcome)}</h2>
+        <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div><dt className="micro">Total time</dt><dd className="big-num mt-1 text-xl">{ms(t.total_ms)}</dd></div>
+          <div><dt className="micro">Tool calls</dt><dd className="big-num mt-1 text-xl">{t.steps.length}</dd></div>
+          <div><dt className="micro">Plan changes</dt><dd className="big-num mt-1 text-xl">{changed}</dd></div>
+          <div><dt className="flex items-center gap-1"><span className="micro">Tokens</span><Tip text="LLM tokens in / out. Zero for the deterministic policy agent." align="end" /></dt>
+            <dd className="big-num mt-1 text-xl">{t.tokens_in ?? 0}<span className="text-sm muted"> / {t.tokens_out ?? 0}</span></dd></div>
+        </dl>
+        {nBlocked > 0 && <p className="mt-3 text-sm text-danger"><Icon name="shield" size={13} className="mr-1 inline" />The guard blocked {nBlocked} call{nBlocked > 1 ? "s" : ""} in this run.</p>}
+      </section>
+
+      <ol className="log" aria-label="Execution log">
         {t.steps.map((s) => {
           const bad = blocked(s.guard);
           return (
-            <li key={s.i} className={`panel relative p-3 ${bad ? "border-crit/70 bg-crit/5" : s.changed_plan ? "border-accent/70" : ""}`}>
-              <span aria-hidden className={`absolute -left-[2.15rem] top-3 grid h-6 w-6 place-items-center rounded-full border text-[11px] font-semibold num ${bad ? "border-crit bg-crit/20 text-crit" : s.changed_plan ? "border-accent bg-accent/20 text-accent" : "border-line bg-panel text-muted"}`}>{s.i}</span>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-sm font-semibold">{s.tool}</span>
-                {s.changed_plan && <span className="rounded border border-accent/60 bg-accent/10 px-1.5 py-0.5 text-[11px] font-semibold text-accent">★ OpenCV result changed the plan</span>}
-                <span className={`rounded border px-1.5 py-0.5 text-[11px] font-semibold ${bad ? "border-crit/60 text-crit" : "border-ok/40 text-ok"}`}
-                  title="Guard verdict: the safety layer that checks every tool call against policy before it runs.">
-                  {bad ? "✕" : "✓"} guard: {s.guard}
-                </span>
-                <span className="num ml-auto text-xs text-muted" title="Time this tool call took">{ms(s.latency_ms)}</span>
+            <li key={s.i} className={`logstep${bad ? " blocked" : s.changed_plan ? " changed" : ""}`}>
+              <span className="logn" aria-hidden>{String(s.i).padStart(2, "0")}</span>
+              <div className="logbody min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="mono text-[13.5px] font-medium text-ink">{s.tool}</span>
+                  {s.changed_plan && <span className="tag yellow sm"><Icon name="bolt" size={11} />OpenCV result changed the plan</span>}
+                  <span className={`tag sm ${bad ? "failed" : "mint"}`} title="Guard verdict: the safety layer checks every tool call against policy before it runs.">
+                    <Icon name={bad ? "x" : "check"} size={11} />guard · {s.guard}
+                  </span>
+                  <span className="mono ml-auto text-xs muted" title="Tool latency">{ms(s.latency_ms)}</span>
+                </div>
+                <p className="mono mt-2 break-words text-[12.5px] leading-relaxed text-body">{s.output_summary}</p>
+                {s.decision_reason && <p className="mt-1.5 text-sm text-body"><span className="font-semibold text-ink">Why:</span> {s.decision_reason}</p>}
               </div>
-              <p className="mt-1.5 break-words font-mono text-xs">{s.output_summary}</p>
-              {s.decision_reason && <p className="mt-1 text-sm text-muted"><span className="text-fg">Why:</span> {s.decision_reason}</p>}
             </li>
           );
         })}
@@ -51,25 +60,37 @@ function TraceView({ id }: { id: string }) {
 export default function Traces({ id }: { id?: string }) {
   const list = useQuery({ queryKey: ["traces"], queryFn: () => api<Trace[]>("/api/traces"), refetchInterval: 5000 });
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Agent traces</h2>
-      <div className="grid gap-5 lg:grid-cols-[18rem_minmax(0,1fr)]">
-        <nav aria-label="Trace list" className="panel max-h-[70vh] overflow-y-auto p-1">
+    <div className="space-y-6">
+      <div>
+        <span className="micro">Console</span>
+        <h1 className="h-page mt-1">Agent traces</h1>
+        <p className="mt-2 max-w-2xl text-sm muted">Every agent run, step by step: the MCP tool it called, what came back, why it chose it, and the guard&apos;s verdict.</p>
+      </div>
+      <div className="grid gap-6 lg:grid-cols-[19rem_minmax(0,1fr)]">
+        <nav aria-label="Trace list" className={`card max-h-[75vh] overflow-y-auto p-1.5 ${id ? "hidden lg:block" : ""}`}>
           {list.error && <ErrorNote error={list.error} />}
-          {!list.data && !list.error && <Loading what="traces" />}
-          {list.data?.length === 0 && <p className="p-4 text-sm text-muted">No agent runs yet. Inject a fault from Demo control.</p>}
-          {list.data?.map((t) => (
-            <button key={t.trace_id} onClick={() => go(`traces/${t.trace_id}`)} aria-current={t.trace_id === id}
-              className={`block w-full rounded-md px-3 py-2 text-left ${t.trace_id === id ? "bg-accent/15" : "hover:bg-raised"}`}>
-              <div className="flex justify-between gap-2 text-sm"><span className="font-semibold">{t.camera_id}</span><span className="text-xs text-muted">{ago(t.started)}</span></div>
-              <div className="flex justify-between gap-2 font-mono text-[11px] text-muted">
-                <span>{t.outcome.replace(/_/g, " ")}</span>
-                <span>{t.steps.length} steps{t.steps.some((s) => s.changed_plan) ? " ★" : ""}</span>
-              </div>
-            </button>
-          ))}
+          {!list.data && !list.error && [0, 1, 2, 3].map((i) => <Skeleton key={i} className="m-1 h-14" />)}
+          {list.data?.length === 0 && <p className="p-4 text-sm muted">No agent runs yet. Inject a fault from Demo.</p>}
+          {list.data?.map((t) => {
+            const on = t.trace_id === id;
+            return (
+              <button key={t.trace_id} onClick={() => go(`traces/${t.trace_id}`)} aria-current={on ? "true" : undefined}
+                className={`block w-full rounded-[8px] px-3 py-2.5 text-left transition-colors ${on ? "bg-yellow text-forest" : "hover:bg-tint"}`}>
+                <div className="flex justify-between gap-2 text-sm"><span className="font-semibold">{t.camera_id}</span><span className={`text-xs ${on ? "" : "muted"}`}>{ago(t.started)}</span></div>
+                <div className={`mono mt-0.5 flex justify-between gap-2 text-[11px] ${on ? "" : "muted"}`}>
+                  <span className="truncate">{human(t.outcome)}</span>
+                  <span className="flex-none">{t.steps.length} steps{t.steps.some((s) => s.changed_plan) ? " ★" : ""}</span>
+                </div>
+              </button>
+            );
+          })}
         </nav>
-        <div className="min-w-0">{id ? <TraceView id={id} /> : <p className="panel p-8 text-center text-sm text-muted">Select a trace to see each tool call, its result, the agent's reasoning and the guard verdict.</p>}</div>
+        <div className="min-w-0">
+          {id && <a href="#/traces" className="btn ghost sm -ml-2 mb-3 lg:hidden"><Icon name="back" /> All traces</a>}
+          {id ? <TraceView id={id} /> : (
+            <Empty icon="bolt" title="Select a trace">Pick a run to see each tool call, its result, the agent&apos;s reasoning and the guard verdict. Steps where an OpenCV result changed the plan are highlighted.</Empty>
+          )}
+        </div>
       </div>
     </div>
   );
