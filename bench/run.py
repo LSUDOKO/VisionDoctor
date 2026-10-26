@@ -145,7 +145,8 @@ def ec2_price(instance_type: str | None, region: str | None) -> float | None:
     try:
         import boto3
 
-        loc = {"us-east-1": "US East (N. Virginia)", "us-west-2": "US West (Oregon)"}.get(region or "us-east-1")
+        loc = {"us-east-1": "US East (N. Virginia)", "us-west-2": "US West (Oregon)",
+               "ap-south-1": "Asia Pacific (Mumbai)"}.get(region or "us-east-1")
         pr = boto3.client("pricing", region_name="us-east-1")
         r = pr.get_products(ServiceCode="AmazonEC2", Filters=[
             {"Type": "TERM_MATCH", "Field": f, "Value": v} for f, v in {
