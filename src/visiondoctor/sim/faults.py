@@ -61,11 +61,15 @@ EXPECTED_CHECK = {
 }
 
 
-def drift_matrix(w: int, h: int, severity: int, sign: int = 1) -> np.ndarray:
+def drift_matrix(
+    w: int, h: int, severity: int, sign: int = 1, rot_deg: float | None = None, shift_frac: float | None = None
+) -> np.ndarray:
     i = severity - 1
-    M = cv2.getRotationMatrix2D((w / 2, h / 2), sign * DRIFT_ROT_DEG[i], 1.0)
-    M[0, 2] += sign * DRIFT_SHIFT_FRAC[i] * w
-    M[1, 2] += 0.5 * DRIFT_SHIFT_FRAC[i] * h
+    rot = DRIFT_ROT_DEG[i] if rot_deg is None else rot_deg
+    shift = DRIFT_SHIFT_FRAC[i] if shift_frac is None else shift_frac
+    M = cv2.getRotationMatrix2D((w / 2, h / 2), sign * rot, 1.0)
+    M[0, 2] += sign * shift * w
+    M[1, 2] += 0.5 * shift * h
     return np.vstack([M, [0, 0, 1]]).astype(np.float64)
 
 
@@ -113,7 +117,8 @@ class Fault:
     # --- injectors ------------------------------------------------------------------------
     def _drift(self, img: np.ndarray) -> np.ndarray:
         h, w = img.shape[:2]
-        return warp(img, drift_matrix(w, h, self.severity, int(self.params.get("sign", 1))))
+        p = self.params
+        return warp(img, drift_matrix(w, h, self.severity, int(p.get("sign", 1)), p.get("rot_deg"), p.get("shift_frac")))
 
     def _vibration(self, img: np.ndarray) -> np.ndarray:
         assert self._rng is not None
