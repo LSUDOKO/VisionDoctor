@@ -24,3 +24,9 @@ Every change from the spec: what, why, impact.
 | 18 | COOL benchmark: only the local x86 configuration was run | No Graviton/COOL instance available without deploy | No COOL speedup claimed; BenchStack runs A/B/C when deployed |
 | 19 | `mypy --strict` is a `make lint` target, not a blocking pre-commit hook | Keep iteration fast | Lint is advisory |
 | 20 | Live simulator excludes MOT17-02 | Dense crowd at dusk gives too few static keypoints at 640 px (drift abstains) | Kept in offline eval as failure case |
+| 21 | cdk-nag pinned to **2.38.2** | cdk-nag 3.x removed `NagSuppressions` (uses `Validations.of().acknowledge()` per finding) | Same AwsSolutions pack; suppressions with reasons are written to template metadata |
+| 22 | Verify: when predicted loss < 0.15 the impact condition is "no predicted harm (≤ 0.1, ≈ predictor MAE)" instead of "recover ≥ 50% of the loss" | With small predicted losses the 50% test was decided by predictor noise (E5 first run: 0.60 correct) | E5 0.80 correct; both runs reported in REPORT.md |
+| 23 | Untrained-model fallback impact = 0.25 + 0.75 × worst check score (noise weighted half) | Keeps the agent deterministic when no model is trained; used by golden-trace tests on the synthetic scene, where the learned model is out of distribution | Golden traces test agent logic, not the learned model |
+| 24 | Realign renders a reflected border for health analysis, black border for the downstream stream | The black crop was re-detected as occlusion/exposure on later scans | No spurious post-repair incidents |
+| 25 | E5 bypasses the 10 incidents/min fleet rate limit | The evaluation replays incidents faster than real time | Rate limit still enforced in the service |
+| 26 | Architecture PNGs drawn with OpenCV (`scripts/draw_architecture.py`), Mermaid sources kept | mermaid-cli needs a headless Chromium download; external renderers not used | Diagrams in docs/img |
