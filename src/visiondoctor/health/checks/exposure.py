@@ -20,6 +20,10 @@ def check(ctx: ScanContext) -> CheckResult:
     explained = None
     if dl > 0 and rel_con < 0.75 and d_high < 0.1:
         explained, sev = "haze", 0  # brighter but flatter = veil, not gain
+    if ctx.sev("occlusion") >= 3:
+        explained, sev = "occlusion", min(sev, 1)
+    if ctx.sev("glare") >= 2 and ctx.lum_ratio_pct(20) <= 1.12:
+        explained, sev = "glare", min(sev, 1)
     direction = "over" if dl > 0 else "under"
     ev = {
         "mean_lum": ctx.glob["lum"],
