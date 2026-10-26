@@ -136,6 +136,18 @@ An earlier run (before the verify rule below and with the 10 incidents/min rate 
 when the predicted loss is < 0.15, verification requires "no predicted harm" (within the predictor's ~0.1 MAE)
 instead of 50% recovery, which predictor noise decided.
 
+**E6 — benchmark** (`results/final/bench_summary.json`, environment in `bench_environment_local.json`). Only the
+local configuration could be run: x86-64, 16 threads, stock `opencv-python-headless` 5.0.0 — **101 scans/min** for 12
+simulated 1080p cameras (5-frame bursts, all 11 checks), p50 568 ms, p95 627 ms per scan, i.e. ~100 cameras per host at
+1 scan/min. Configurations A (COOL 3.1 on c8g.4xlarge), B (stock OpenCV 5 on c8g.4xlarge) and C (c7i.4xlarge) are
+automated in `VdBench` (`bench/run.py` + Price List API for $ per 1M scans) but were not run, so **no COOL speedup is
+claimed**.
+
+**Cloud delivery evidence.** `cdk synth` of all eight stacks with cdk-nag AwsSolutions: 0 unsuppressed findings
+(`results/final/cdk_synth.txt`); every suppression carries a reason in the template metadata.
+
+![E3](../results/final/figs/e3_true_ap.png)
+
 ## 9. Limitations and failure cases
 
 Crowded scenes (MOT17-02/04) raise smudge/occlusion false alarms and starve drift of static keypoints; short
