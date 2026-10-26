@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     max_realign_disp_frac: float = 0.12
     min_realign_inlier_ratio: float = 0.5
     gamma_range: tuple[float, float] = (0.5, 2.0)
+    exposure_gain_range: tuple[float, float] = (0.4, 2.5)
     max_dehaze_omega: float = 0.95
     wb_gain_range: tuple[float, float] = (0.5, 2.0)
     max_denoise_h: float = 15.0
