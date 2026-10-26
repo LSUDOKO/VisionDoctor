@@ -1,22 +1,30 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { api, post, type Camera } from "../api";
-import { ErrorNote, Section } from "../ui";
+import { Card, ErrorNote, Icon, Skeleton, errText, human, useFeedback } from "../ui";
 
 const FAULTS = ["drift", "vibration", "haze", "condensation", "glare", "exposure", "color_cast", "ir_cut_stuck", "noise",
   "occlusion", "smudge", "spider_web", "defocus", "freeze", "dead"];
-
-function Result({ m }: { m: { data?: unknown; error: unknown } }) {
-  if (m.error) return <ErrorNote error={m.error} />;
-  if (m.data === undefined) return null;
-  return <pre role="status" className="mt-3 overflow-x-auto rounded-md bg-raised p-2 font-mono text-xs">{JSON.stringify(m.data, null, 2)}</pre>;
-}
+const SEV_WORD = ["", "barely visible", "mild", "clear", "strong", "severe"];
 
 export default function Demo() {
+  const qc = useQueryClient();
+  const { toast } = useFeedback();
   const scenarios = useQuery({ queryKey: ["scenarios"], queryFn: () => api<string[]>("/api/scenarios") });
   const cams = useQuery({ queryKey: ["cameras"], queryFn: () => api<Camera[]>("/api/cameras") });
-  const run = useMutation({ mutationFn: (name: string) => post("/api/sim/scenario", { name }) });
-  const inject = useMutation({ mutationFn: (b: Record<string, unknown>) => post("/api/sim/inject", b) });
+  const run = useMutation({
+    mutationFn: (name: string) => post<{ events?: number }>("/api/sim/scenario", { name }),
+    onSuccess: (r, name) => toast({ title: `Scenario “${name}” started`, body: `${r?.events ?? "Several"} fault events scheduled. Watch the fleet and incident queue.` }),
+    onError: (e) => toast({ title: "Could not start scenario", body: errText(e), error: true }),
+  });
+  const inject = useMutation({
+    mutationFn: (b: Record<string, unknown>) => post<{ event_id?: string }>("/api/sim/inject", b),
+    onSuccess: (r, b) => {
+      toast({ title: "Fault injected", body: `${human(String(b.fault))} sev ${b.severity} on ${b.camera_id}${r?.event_id ? ` · ${r.event_id}` : ""}. The next scan should catch it.` });
+      qc.invalidateQueries({ queryKey: ["cameras"] });
+    },
+    onError: (e) => toast({ title: "Inject failed", body: errText(e), error: true }),
+  });
   const [form, setForm] = useState({ camera_id: "", fault: "haze", severity: 3, duration_s: "" });
 
   const submit = (e: FormEvent) => {
@@ -27,47 +35,56 @@ export default function Demo() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold">Demo control</h2>
-        <p className="text-sm text-muted">Admin only. Drives the camera simulator for live judging; faults are invisible to the scanner except through the images.</p>
+        <span className="micro">Console · admin</span>
+        <h1 className="h-page mt-1">Demo control</h1>
+        <p className="mt-2 max-w-2xl text-sm muted">Drives the camera simulator. Injected faults are invisible to the scanner except through the images it sees.</p>
       </div>
-      <div className="grid gap-5 md:grid-cols-2">
-        <Section title="Scenarios">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        <Card title="Scenarios" hint="A scenario schedules a scripted sequence of faults across the fleet.">
           {scenarios.error && <ErrorNote error={scenarios.error} />}
-          <ul className="space-y-2">
-            {scenarios.data?.map((s) => (
-              <li key={s} className="flex items-center justify-between rounded-md border border-line px-3 py-2">
-                <span className="font-mono text-sm">{s}.yaml</span>
-                <button className="btn btn-primary" disabled={run.isPending} onClick={() => run.mutate(s)}>▶ Start</button>
+          {!scenarios.data && !scenarios.error && <Skeleton className="h-24 w-full" />}
+          <ul className="space-y-2.5">
+            {scenarios.data?.map((s, i) => (
+              <li key={s} className={`flex items-center justify-between gap-3 rounded-[10px] px-4 py-3 ${i === 0 ? "bg-mint" : "bg-tint"}`}>
+                <div className="min-w-0">
+                  <div className="font-semibold text-ink">{s}</div>
+                  <div className="mono text-[11px] muted">scenarios/{s}.yaml</div>
+                </div>
+                <button className="btn primary sm" disabled={run.isPending} onClick={() => run.mutate(s)} aria-label={`Start scenario ${s}`}>
+                  <Icon name="play" size={12} /> Start
+                </button>
               </li>
             ))}
           </ul>
-          <Result m={run} />
-        </Section>
-        <Section title="Inject a fault">
-          <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
-            <label className="grid gap-1 text-sm">Camera
-              <select className="field" value={form.camera_id} onChange={(e) => setForm({ ...form, camera_id: e.target.value })}>
+        </Card>
+        <Card title="Inject a fault">
+          <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+            <label className="grid gap-1.5"><span className="micro">Camera</span>
+              <select className="field" value={form.camera_id || cams.data?.[0]?.camera_id || ""} onChange={(e) => setForm({ ...form, camera_id: e.target.value })}>
                 {cams.data?.map((c) => <option key={c.camera_id} value={c.camera_id}>{c.camera_id} · {c.site}</option>)}
               </select>
             </label>
-            <label className="grid gap-1 text-sm">Fault
+            <label className="grid gap-1.5"><span className="micro">Fault</span>
               <select className="field" value={form.fault} onChange={(e) => setForm({ ...form, fault: e.target.value })}>
-                {FAULTS.map((f) => <option key={f}>{f}</option>)}
+                {FAULTS.map((f) => <option key={f} value={f}>{human(f)}</option>)}
               </select>
             </label>
-            <label className="grid gap-1 text-sm" title="1 = barely visible, 5 = severe"><span>Severity: <span className="num">{form.severity}</span> / 5</span>
-              <input type="range" min={1} max={5} value={form.severity} onChange={(e) => setForm({ ...form, severity: +e.target.value })} className="accent-[rgb(var(--accent))]" />
+            <label className="grid gap-1.5">
+              <span className="flex items-baseline justify-between"><span className="micro">Severity</span><span className="text-sm text-ink"><b className="big-num text-lg">{form.severity}</b> / 5 · {SEV_WORD[form.severity]}</span></span>
+              <input type="range" className="slider" min={1} max={5} value={form.severity} onChange={(e) => setForm({ ...form, severity: +e.target.value })}
+                aria-valuetext={`${form.severity} of 5, ${SEV_WORD[form.severity]}`} />
             </label>
-            <label className="grid gap-1 text-sm" title="Leave empty for a fault that stays until repaired">Duration (s, optional)
+            <label className="grid gap-1.5"><span className="micro">Duration, seconds (optional)</span>
               <input className="field" type="number" min={1} inputMode="numeric" value={form.duration_s} placeholder="until repaired"
                 onChange={(e) => setForm({ ...form, duration_s: e.target.value })} />
             </label>
-            <button type="submit" className="btn btn-primary sm:col-span-2 justify-center" disabled={inject.isPending || !cams.data?.length}>Inject fault</button>
+            <button type="submit" className="btn primary sm:col-span-2" disabled={inject.isPending || !cams.data?.length}>
+              {inject.isPending ? <><Icon name="refresh" className="spin" /> Injecting…</> : <><Icon name="bolt" /> Inject fault</>}
+            </button>
           </form>
-          <Result m={inject} />
-        </Section>
+        </Card>
       </div>
     </div>
   );
