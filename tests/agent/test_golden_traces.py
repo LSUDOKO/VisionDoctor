@@ -89,6 +89,7 @@ def test_approval_flow_creates_ticket_and_closes(fleet: Fleet, runner: AgentRunn
     assert inc and inc["state"] == "awaiting_approval"
     ap = fleet.decide(inc["approval_id"], True, "judge@example.com")
     assert ap["state"] == "approved" and ap.get("ticket_id")
+    assert fleet.get_incident(inc_id)["approved_by"] == "judge@example.com"  # type: ignore[index]
     fleet.sim.resolve("cam-01")  # technician fixed it
     time.sleep(2.5)
     fleet.scan_camera("cam-01")

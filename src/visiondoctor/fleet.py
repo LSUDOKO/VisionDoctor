@@ -434,6 +434,7 @@ class Fleet:
         if inc is None:
             return ap
         inc["approved_by"] = user
+        self._save_incident(inc)  # persist before ticket creation re-reads the incident
         if not approve:
             inc["state"] = "open"
             self._save_incident(inc)
