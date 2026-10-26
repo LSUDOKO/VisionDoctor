@@ -254,7 +254,7 @@ class Fleet:
             elif c.region_mask is not None and c.region_mask.any():
                 ys, xs = np.nonzero(c.region_mask)
                 tw, th = ref.width / w, ref.height / h
-                bbox = [int(xs.min() * tw), int(ys.min() * th), int((xs.ptp() + 1) * tw), int((ys.ptp() + 1) * th)]
+                bbox = [int(xs.min() * tw), int(ys.min() * th), int((np.ptp(xs) + 1) * tw), int((np.ptp(ys) + 1) * th)]
             faults.append({"type": c.name, "severity": c.severity, "region_bbox": bbox, "confidence": round(c.severity / 5, 2)})
             if c.name in SOFTWARE_FIXABLE:
                 step = repair.plan(c.name, rep, ref)
@@ -263,7 +263,9 @@ class Fleet:
                 else:
                     ok, why = step is not None, "ok"
                 fixable.append({"type": c.name, "repair": repair.REPAIR_FOR_FAULT[c.name], "within_bounds": ok, "reason": why})
-        return {"camera_id": camera_id, "faults": faults, "fixable": fixable, "likely_cause": self._likely_cause(camera_id, faults)}
+        crit = int((self.store.get("cameras", camera_id) or {}).get("criticality", 3))
+        return {"camera_id": camera_id, "faults": faults, "fixable": fixable, "criticality": crit,
+                "likely_cause": self._likely_cause(camera_id, faults)}
 
     def _likely_cause(self, camera_id: str, faults: list[dict[str, Any]]) -> str:
         if not faults:
@@ -506,7 +508,8 @@ class Fleet:
         inc = self.get_incident(incident_id)
         if inc is None:
             return {"error": "unknown incident"}
-        state = {"transient": "false_alarm", "false_alarm": "false_alarm", "auto_fixed": "repaired"}.get(resolution, "closed")
+        state = {"transient": "false_alarm", "false_alarm": "false_alarm", "auto_fixed": "repaired",
+                 "watch": "watch"}.get(resolution, "closed")
         inc.update(state=state, resolution=resolution, closed_at=time.time())
         self._save_incident(inc)
         if state == "false_alarm":
