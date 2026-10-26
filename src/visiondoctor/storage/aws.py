@@ -7,6 +7,7 @@ from decimal import Decimal
 from typing import Any
 
 import boto3
+from botocore.config import Config
 from boto3.dynamodb.conditions import Key
 
 from visiondoctor.config import Settings
@@ -40,7 +41,12 @@ class AwsStorage(Storage):
         self.bucket = s.s3_bucket
         self.prefix = s.ddb_prefix
         self.ddb = boto3.resource("dynamodb", region_name=s.aws_region)
-        self.s3 = boto3.client("s3", region_name=s.aws_region)
+        # Regional endpoint + SigV4: presigned URLs for new buckets otherwise get a 307 redirect
+        # to the regional host and the signature no longer matches (403).
+        self.s3 = boto3.client(
+            "s3", region_name=s.aws_region, endpoint_url=f"https://s3.{s.aws_region}.amazonaws.com",
+            config=Config(signature_version="s3v4", s3={"addressing_style": "virtual"}),
+        )
         self._tables: dict[str, Any] = {}
 
     def _t(self, table: str) -> Any:
