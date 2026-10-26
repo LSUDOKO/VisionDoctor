@@ -92,7 +92,9 @@ def predict_impact(
     x = feature_vector(report, sig)
     pred = get_predictor()
     if pred is None:
-        m = lo = hi = 0.25 + 0.75 * report.overall_score  # untrained fallback: monotone in health
+        # Untrained fallback: monotone in the worst check (a single local fault can still hurt).
+        worst = min((c.score for c in report.checks.values()), default=1.0)
+        m = lo = hi = 0.25 + 0.75 * worst
         model = "heuristic"
     else:
         mm, ll, hh = pred.predict(x)
