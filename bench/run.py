@@ -120,7 +120,7 @@ def end_to_end(n_cams: int, scans: int) -> dict[str, Any]:
     from visiondoctor.health.scan import scan
     from visiondoctor.sim.simulator import FleetSimulator
 
-    sim = FleetSimulator(cameras=n_cams, width=1920, max_frames=40)
+    sim = FleetSimulator(cameras=n_cams, width=1920, max_frames=12)  # bounded RAM at 1080p
     refs = {c: learn_reference(c, sim.calibration_frames(c, 20)) for c in sim.cameras}
     states = {c: CameraState() for c in sim.cameras}
     lat = []
