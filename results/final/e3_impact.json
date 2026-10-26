@@ -1,0 +1,99 @@
+{
+  "rows": 2656,
+  "videos": [
+    "MOT17-02",
+    "MOT17-04",
+    "MOT17-09",
+    "vtest"
+  ],
+  "agreement_cv": {
+    "spearman": 0.533,
+    "spearman_ci95": [
+      0.498,
+      0.5645
+    ],
+    "mae": 0.1396,
+    "per_video": {
+      "MOT17-02": {
+        "n": 664,
+        "spearman": 0.484,
+        "mae": 0.1799
+      },
+      "MOT17-04": {
+        "n": 664,
+        "spearman": 0.704,
+        "mae": 0.1037
+      },
+      "MOT17-09": {
+        "n": 664,
+        "spearman": 0.684,
+        "mae": 0.1322
+      },
+      "vtest": {
+        "n": 664,
+        "spearman": 0.596,
+        "mae": 0.1427
+      }
+    }
+  },
+  "true_ap_drop_mot17": {
+    "groups": 461,
+    "spearman": 0.504,
+    "spearman_ci95": [
+      0.4179,
+      0.5827
+    ],
+    "mae": 0.181
+  },
+  "permutation_importance_top12": [
+    {
+      "feature": "det_count_ratio",
+      "importance": 0.5252
+    },
+    {
+      "feature": "drift.disp_pct_diag",
+      "importance": 0.0826
+    },
+    {
+      "feature": "occlusion.occluded_frac",
+      "importance": 0.0628
+    },
+    {
+      "feature": "drift.inlier_ratio",
+      "importance": 0.0583
+    },
+    {
+      "feature": "sev_drift",
+      "importance": 0.0578
+    },
+    {
+      "feature": "sharpness.sharp_n_ratio",
+      "importance": 0.0492
+    },
+    {
+      "feature": "det_conf_ratio",
+      "importance": 0.0479
+    },
+    {
+      "feature": "glare.delta_frac",
+      "importance": 0.0331
+    },
+    {
+      "feature": "exposure.clip_low",
+      "importance": 0.0282
+    },
+    {
+      "feature": "det_conf_entropy",
+      "importance": 0.0272
+    },
+    {
+      "feature": "haze.saturation_ratio",
+      "importance": 0.027
+    },
+    {
+      "feature": "sharpness.tenengrad_ratio",
+      "importance": 0.0249
+    }
+  ],
+  "model": "hgb-2656rows"
+}
