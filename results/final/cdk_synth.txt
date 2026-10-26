@@ -1,0 +1,10 @@
+cdk synth (aws-cdk-lib 2.274.0, cdk-nag 2.38.2 AwsSolutions) — 2026-10-26T16:40:59Z
+exit code 0; unsuppressed cdk-nag findings: 0
+VdApp.template.json: 18 resources
+VdAuth.template.json: 6 resources
+VdBench.template.json: 14 resources
+VdCoolCompute.template.json: 18 resources
+VdData.template.json: 19 resources
+VdNetwork.template.json: 37 resources
+VdObservability.template.json: 7 resources
+VdWeb.template.json: 12 resources
