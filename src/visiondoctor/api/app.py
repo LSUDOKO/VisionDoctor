@@ -67,6 +67,14 @@ def health() -> dict[str, Any]:
             "backend": get_settings().backend}
 
 
+@app.get("/api/config")
+def public_config() -> dict[str, Any]:
+    """Unauthenticated: what the dashboard needs to sign in (no secrets)."""
+    s = get_settings()
+    return {"auth": bool(s.cognito_user_pool_id), "region": s.aws_region, "user_pool_id": s.cognito_user_pool_id,
+            "client_id": s.cognito_client_id}
+
+
 @api.get("/summary")
 def summary() -> dict[str, Any]:
     f = fleet()
