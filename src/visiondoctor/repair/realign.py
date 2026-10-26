@@ -9,10 +9,13 @@ from visiondoctor.observability.metrics import timed
 
 
 @timed("warpPerspective")
-def apply(frame: np.ndarray, H: list[list[float]] | np.ndarray) -> np.ndarray:
+def apply(frame: np.ndarray, H: list[list[float]] | np.ndarray, analysis: bool = False) -> np.ndarray:
+    """Undo drift. The downstream AI gets a black (cropped) border; health analysis gets a
+    reflected border so the crop is not mistaken for an occlusion on later scans."""
     h, w = frame.shape[:2]
     Hinv = np.linalg.inv(np.asarray(H, dtype=np.float64))
-    return cv2.warpPerspective(frame, Hinv, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_CONSTANT)
+    border = cv2.BORDER_REFLECT101 if analysis else cv2.BORDER_CONSTANT
+    return cv2.warpPerspective(frame, Hinv, (w, h), flags=cv2.INTER_CUBIC, borderMode=border)
 
 
 def params_from_drift(evidence: dict[str, object], scale: float = 1.0) -> dict[str, object]:

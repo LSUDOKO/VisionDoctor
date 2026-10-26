@@ -106,9 +106,9 @@ class Fleet:
 
     # ---- frames ----------------------------------------------------------------------
     def burst(self, camera_id: str, n: int = 5) -> list[np.ndarray]:
-        """Frames as the downstream AI sees them (raw stream + correction profile)."""
+        """Corrected stream (raw + correction profile) rendered for health analysis."""
         rt = self.rt[camera_id]
-        return [rt.profile.apply(f) for f in self.sim.burst(camera_id, n)]
+        return [rt.profile.apply(f, analysis=True) for f in self.sim.burst(camera_id, n)]
 
     @staticmethod
     def _jpeg(img: np.ndarray, quality: int = 85) -> bytes:
@@ -335,7 +335,7 @@ class Fleet:
             step, before, acc_b = rt.pending[repair_id]
             trial = repair.CorrectionProfile(rt.profile.steps + [step])
             raw = self.sim.burst(camera_id, 5)
-            base = [rt.profile.apply(f) for f in raw]
+            base = [rt.profile.apply(f, analysis=True) for f in raw]
 
             def impact_fn(r: HealthReport, frames: list[np.ndarray]) -> float:
                 return float(predict_impact(r, frames, rt.reference)["predicted_accuracy"])

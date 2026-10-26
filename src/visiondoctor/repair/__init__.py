@@ -31,11 +31,11 @@ REPAIR_FOR_FAULT: dict[str, RepairType] = {
 FAULT_FOR_REPAIR = {v: k for k, v in REPAIR_FOR_FAULT.items()}
 
 _APPLY: dict[str, Callable[..., np.ndarray]] = {
-    "realign": lambda f, p: realign.apply(f, p["H"]),
-    "exposure_fix": lambda f, p: exposure.apply(f, p["alpha"], p.get("gamma", 1.0), bool(p.get("clahe", False))),
-    "dehaze": lambda f, p: dehaze.apply(f, p.get("omega", 0.9)),
-    "white_balance": lambda f, p: white_balance.apply(f, p["gains"]),
-    "denoise": lambda f, p: denoise.apply(f, p["h"]),
+    "realign": lambda f, p, a=False: realign.apply(f, p["H"], analysis=a),
+    "exposure_fix": lambda f, p, a=False: exposure.apply(f, p["alpha"], p.get("gamma", 1.0), bool(p.get("clahe", False))),
+    "dehaze": lambda f, p, a=False: dehaze.apply(f, p.get("omega", 0.9)),
+    "white_balance": lambda f, p, a=False: white_balance.apply(f, p["gains"]),
+    "denoise": lambda f, p, a=False: denoise.apply(f, p["h"]),
 }
 
 
@@ -45,17 +45,18 @@ class RepairStep:
     params: dict[str, Any]
     repair_id: str = field(default_factory=lambda: "rp_" + uuid.uuid4().hex[:10])
 
-    def apply(self, frame: np.ndarray) -> np.ndarray:
-        return _APPLY[self.type](frame, self.params)
+    def apply(self, frame: np.ndarray, analysis: bool = False) -> np.ndarray:
+        return _APPLY[self.type](frame, self.params, analysis)
 
 
 @dataclass
 class CorrectionProfile:
     steps: list[RepairStep] = field(default_factory=list)
 
-    def apply(self, frame: np.ndarray) -> np.ndarray:
+    def apply(self, frame: np.ndarray, analysis: bool = False) -> np.ndarray:
+        """``analysis=True`` renders the stream for health scans (see realign.apply)."""
         for s in self.steps:
-            frame = s.apply(frame)
+            frame = s.apply(frame, analysis)
         return frame
 
     def without(self, repair_id: str) -> CorrectionProfile:

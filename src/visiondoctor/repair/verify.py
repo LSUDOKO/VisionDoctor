@@ -65,7 +65,7 @@ def verify(
     acc_before: float | None = None,
 ) -> VerifyResult:
     fault = FAULT_FOR_REPAIR[repair_type]
-    corrected = [profile.apply(f) for f in frames]
+    corrected = [profile.apply(f, analysis=True) for f in frames]
     after = scan(camera_id, corrected, reference, CameraState())
     sev_b = report_before.checks[fault].severity
     sev_a = after.checks[fault].severity
