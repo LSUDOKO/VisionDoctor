@@ -27,7 +27,8 @@ from visiondoctor.observability.metrics import timer
 
 ORB_FEATURES = 3000
 MIN_BUCKET_FRAMES = 10
-STATIC_STD_MAX = 10.0
+STATIC_DEV = 25.0
+STATIC_SHARE = 0.15
 
 
 def orb() -> cv2.ORB:
@@ -150,9 +151,12 @@ def _learn_bucket(frames: list[np.ndarray], feats: list[FrameFeatures]) -> RefBu
     with timer("median"):
         background = np.median(stack, axis=0).astype(np.uint8)
     grays = np.stack([f.gray for f in feats[:30]]).astype(np.float32)
-    tstd = grays.std(axis=0)
-    static = (tstd < STATIC_STD_MAX).astype(np.uint8) * 255
-    static = cv2.erode(static, np.ones((5, 5), np.uint8))
+    # A pixel is dynamic if it departs strongly from the median in a sizeable share of frames
+    # (traffic, pedestrians). Edges with compression flicker stay static — that is where the
+    # keypoints are.
+    moving = (np.abs(grays - np.median(grays, axis=0)) > STATIC_DEV).mean(axis=0) > STATIC_SHARE
+    dyn = cv2.dilate(moving.astype(np.uint8) * 255, np.ones((9, 9), np.uint8))
+    static = cv2.bitwise_not(dyn)
     bg_gray = cv2.cvtColor(background, cv2.COLOR_BGR2GRAY)
     with timer("orb_detect"):
         kps, des = orb().detectAndCompute(bg_gray, static)
