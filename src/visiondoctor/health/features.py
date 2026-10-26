@@ -65,8 +65,9 @@ def glare_mask(hsv: np.ndarray) -> np.ndarray:
 
 
 def dark_channel(img: np.ndarray, kernel: np.ndarray = DARK_KERNEL) -> np.ndarray:
+    b, g, r = cv2.split(img)
     with timer("erode"):
-        return cv2.erode(np.min(img, axis=2), kernel)
+        return cv2.erode(cv2.min(cv2.min(b, g), r), kernel)
 
 
 def thumb_hash(gray: np.ndarray) -> str:
