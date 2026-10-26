@@ -77,8 +77,11 @@ admin, SSM model parameter), `VdCoolCompute` (COOL AMI launch templates, IMDSv2,
 scaled on queue depth, internal ALB for MCP with a shared-secret header), `VdApp` (Fargate ARM64, least-privilege task
 role, SNS approvals), `VdWeb` (CloudFront + OAC, `/api/*` to the ALB), `VdObservability` (dashboard, alarms on DLQ,
 scan p95, guard blocks, Bedrock throttles, ASG at max; $50 budget). `VdBench` launches COOL / stock-Graviton / x86
-benchmark instances that self-terminate. The stacks are synthesised in this submission; deployment requires the COOL
-Marketplace subscription and was not performed (see `docs/DEVIATIONS.md`).
+benchmark instances that self-terminate. The full stacks are synthesised (cdk-nag clean). **Deployed live**: a credit-friendly *lean* profile in
+ap-south-1 — one Graviton4 `c8g.large` (Ubuntu 24.04 + official OpenCV 5.0 wheel; the COOL Marketplace subscription is
+rejected for this AWS India account) behind CloudFront (origin reachable only from CloudFront's prefix list, HTTPS),
+S3 + DynamoDB, Cognito login, SNS alerts, CloudWatch metrics/dashboard, Budgets alerts at $20/$50 —
+https://djekr86y464c8.cloudfront.net (`results/final/aws_outputs.json`, `aws_health.json`).
 
 ## 7. Agentic workflow
 
@@ -94,8 +97,11 @@ auto-fixed, smudge/occlusion/freeze → approval, transient glare → closed, an
 Example trace (`results/final/example_trace_drift.json`): scan (drift sev 4, rotation and displacement) → diagnose →
 predict impact → `apply_repair(realign)` → `verify_repair` (drift sev 4 → 0, predicted accuracy recovers) →
 `close_incident(auto_fixed)`. Bedrock: the Converse loop maps MCP `list_tools` to `toolSpec`s and routes each `toolUse`
-through the same guard; in this account Anthropic models returned `AccessDeniedException (INVALID_PAYMENT_INSTRUMENT)`,
-so the runner fell back to the policy agent (recorded in the trace).
+through the same guard. On AWS it runs **Amazon Nova Lite** (Anthropic models are Marketplace-billed and rejected for
+this account). Live trace `results/final/example_trace_bedrock_guard_replan.json`: scan (drift sev 4) → diagnose →
+`apply_repair(realign)` → `verify_repair` with the wrong id → **blocked by the guard** → the model re-plans with the
+returned id → verified (drift 4 → 0, predicted accuracy 0.06 → 0.92) → `close_incident(auto_fixed)`, ~18k tokens.
+That guard rule was added after an earlier live run closed an unverified repair — exactly the failure the guard exists for.
 
 ## 8. Evaluation
 
@@ -139,10 +145,10 @@ not be evaluated (account access, §7). History: a first run (before the "no pre
 predicted losses, and with the 10 incidents/min limit active) scored 0.60; an intermediate run 0.80; the number above
 is from the shipped code (after the realign-border fix).
 
-**E6 — benchmark** (`results/final/bench_summary.json`, environment in `bench_environment_local.json`). Only the
-local configuration could be run: x86-64, 16 threads, stock `opencv-python-headless` 5.0.0 — **101 scans/min** for 12
-simulated 1080p cameras (5-frame bursts, all 11 checks), p50 568 ms, p95 627 ms per scan, i.e. ~100 cameras per host at
-1 scan/min. Configurations A (COOL 3.1 on c8g.4xlarge), B (stock OpenCV 5 on c8g.4xlarge) and C (c7i.4xlarge) are
+**E6 — benchmark** (`results/final/bench_summary.json`). 12 simulated 1080p cameras, 5-frame bursts, all 11 checks,
+stock OpenCV 5.0.0: **Graviton4 c8g.large (2 vCPU) 119 scans/min**, p50 485 ms, p95 503 ms → ~119 cameras per instance
+at 1 scan/min and **$7.55 per 1M camera-scans** (on-demand $0.054/h in Mumbai from the AWS Price List API); a 16-thread
+x86 laptop reaches 101 scans/min (p50 568 ms). The aarch64 wheel already includes KleidiCV. Configurations A (COOL 3.1 on c8g.4xlarge), B (stock OpenCV 5 on c8g.4xlarge) and C (c7i.4xlarge) are
 automated in `VdBench` (`bench/run.py` + Price List API for $ per 1M scans) but were not run, so **no COOL speedup is
 claimed**.
 
