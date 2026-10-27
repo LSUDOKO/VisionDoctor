@@ -1,0 +1,17 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-and-unit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv venv -p 3.12 .venv && uv pip install --require-hashes -r requirements.lock && uv pip install --no-deps -e .
+      - run: bash scripts/download_models.sh
+      - run: .venv/bin/python -m visiondoctor.cv_runtime
+      - run: .venv/bin/python -m pytest -q -m "not slow and not bedrock"
