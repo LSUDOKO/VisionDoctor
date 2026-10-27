@@ -1,8 +1,35 @@
-# VisionDoctor
+<p align="center">
+  <img src="docs/img/banner.png" alt="VisionDoctor: the AI that watches the cameras, so every other camera AI can be trusted." width="100%">
+</p>
 
-**The AI that watches the cameras, so every other camera AI can be trusted.**
+<p align="center">
+  <img alt="OpenCV 5" src="https://img.shields.io/badge/OpenCV-5.0-ffe95c?style=for-the-badge&logo=opencv&logoColor=1a3300&labelColor=0b0d0a">
+  <img alt="AWS Graviton4" src="https://img.shields.io/badge/AWS-Graviton4-ffe95c?style=for-the-badge&logo=amazonwebservices&logoColor=fcfaf5&labelColor=0b0d0a">
+  <img alt="Amazon Bedrock" src="https://img.shields.io/badge/Amazon-Bedrock-ffe95c?style=for-the-badge&logo=amazonwebservices&logoColor=fcfaf5&labelColor=0b0d0a">
+  <img alt="MCP" src="https://img.shields.io/badge/MCP-13_tools-ffe95c?style=for-the-badge&labelColor=0b0d0a">
+  <img alt="License MIT" src="https://img.shields.io/badge/License-MIT-fcfaf5?style=for-the-badge&labelColor=1a3300">
+</p>
 
-VisionDoctor monitors a fleet of cameras with **OpenCV 5**, diagnoses 11 kinds of camera faults
+<p align="center">
+  <!-- TODO: replace REPLACE_ME with the YouTube video id of the final demo -->
+  <b>▶ <a href="https://youtu.be/REPLACE_ME">Watch the 5-minute demo</a></b>
+  &nbsp;·&nbsp;
+  <b>🌐 Live: <a href="https://djekr86y464c8.cloudfront.net">djekr86y464c8.cloudfront.net</a></b>
+  &nbsp;·&nbsp;
+  <a href="docs/REPORT.md">Technical report</a>
+  &nbsp;·&nbsp;
+  <a href="results/final/summary.md">Measured results</a>
+</p>
+
+---
+
+## The problem
+
+Cameras drift, fog up, get smudged, blinded and frozen, and nobody notices.
+The detector downstream keeps running and silently gets worse.
+Every camera AI is only as trustworthy as the camera feeding it.
+
+**VisionDoctor** monitors a fleet of cameras with **OpenCV 5**, diagnoses 11 kinds of camera faults
 (drift, defocus, dirty lens, haze, glare, occlusion, colour cast, noise, freeze, exposure,
 vibration), **predicts how much downstream detector accuracy has been lost without labels**,
 repairs software-fixable faults, **verifies every repair by re-scanning**, and escalates physical
@@ -10,9 +37,66 @@ faults to a human with face-blurred evidence. An agent (deterministic policy, or
 Converse with tool use) acts only through an **MCP tool server**, behind a guard, and every
 decision is traced.
 
+<p align="center">
+  <img src="docs/gif/loop.gif" alt="The VisionDoctor loop: scan, predict, repair, verify, escalate" width="800">
+</p>
+
 Entry for the OpenCV AI Competition 2026 (powered by AWS): Grand Prize, Agentic Vision Award,
-Best Use of COOL Award. Full specification in [`docs/`](docs/); measured results in
-[`results/final/summary.md`](results/final/summary.md); technical report in [`docs/REPORT.md`](docs/REPORT.md).
+Best Use of COOL Award. Full specification in [`docs/`](docs/).
+
+## How it works
+
+### 1 · Scan: 11 OpenCV 5 checks against a learned reference
+
+Each camera learns a reference (day/night buckets, static-region ORB anchors). Here the camera was
+knocked five degrees: ORB features and a USAC MAGSAC homography measure the drift exactly.
+
+<p align="center"><img src="docs/gif/drift_detection.gif" alt="Drift detected with ORB + USAC MAGSAC homography" width="800"></p>
+
+The other checks catch haze, glare, smudges, occlusion, noise, colour casts, blur, exposure and
+frozen streams. On real MOT17 street footage recall at severity ≥ 3 is **0.911** vs 0.239 for a
+classic tamper detector.
+
+<p align="center"><img src="docs/gif/fault_grid.gif" alt="Grid of injected faults on real MOT17 footage" width="800"></p>
+
+### 2 · Predict: how much accuracy did the camera AI lose, with no labels?
+
+YOLOX-S runs on the OpenCV 5 **new DNN engine**. In simulation every degraded frame has an identical
+clean twin; how well the detector agrees with itself across the twins is the training target, and a
+`HistGradientBoostingRegressor` learns to predict that loss from the health signals alone
+(validated against **true** MOT17 AP drop: Spearman ρ **0.50**).
+
+<p align="center"><img src="docs/gif/impact_prediction.gif" alt="Label-free impact prediction from clean and degraded twins" width="800"></p>
+
+### 3 · Repair + 4 · Verify: a fix only counts if a fresh scan confirms it
+
+Realign, exposure, dehaze, white balance, denoise, each with bounds. For drift, realignment
+restored **92%** of the lost person-detection accuracy (AP 0.114 → **0.346**, clean 0.338).
+
+<p align="center"><img src="docs/gif/repair_verify.gif" alt="Realign repair verified by re-scan, AP bars" width="800"></p>
+
+### The guard: the agent can be wrong, the system cannot
+
+The agent calls OpenCV only through 13 typed MCP tools, and a guard checks every call (allowlist,
+bounds, scope, budgets, approvals). In a live Bedrock run the model passed the wrong repair id; the
+guard blocked it, the agent re-planned, verified the fix, and only then closed the incident.
+
+<p align="center"><img src="docs/gif/guard_blocks_repair.gif" alt="Live Bedrock trace: guard blocks a wrong repair id" width="800"></p>
+
+### 5 · Escalate: physical faults go to a human, with evidence
+
+Anything software cannot fix (or any physical action) waits for one-click human approval, with
+face-mosaicked evidence and the full agent trace.
+
+| Incident queue (one-click approve) | Agent trace (OpenCV results change the plan) |
+|---|---|
+| ![incidents](docs/img/dashboard_incidents.png) | ![trace](docs/img/dashboard_trace_detail.png) |
+
+## Architecture
+
+<p align="center"><img src="docs/img/architecture_aws.png" alt="VisionDoctor AWS architecture" width="100%"></p>
+
+<p align="center"><img src="docs/gif/architecture.gif" alt="Architecture pull-back from the demo" width="800"></p>
 
 ```mermaid
 flowchart LR
@@ -26,11 +110,15 @@ flowchart LR
   D --> UI[React dashboard]
 ```
 
-![fleet dashboard](docs/img/dashboard_fleet.png)
+## The dashboard (live on AWS)
 
-| Incident queue (one-click approve) | Agent trace (OpenCV results change the plan) |
+<p align="center"><img src="docs/gif/live_website.gif" alt="Walkthrough of the live dashboard" width="800"></p>
+
+| Landing | Fleet |
 |---|---|
-| ![incidents](docs/img/dashboard_incidents.png) | ![trace](docs/img/dashboard_trace_detail.png) |
+| ![landing](docs/img/ui_landing.png) | ![fleet](docs/img/ui_fleet.png) |
+| **Camera detail** | **Agent trace** |
+| ![camera](docs/img/ui_camera.png) | ![trace](docs/img/ui_trace.png) |
 
 ## Measured results (all from `results/final/`)
 
