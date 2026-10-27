@@ -4,6 +4,7 @@
 sub bass, soft kick on 1 & 3, swung closed hats. Energy lifts at 199 s and 223 s, fades in/out.
 """
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -12,7 +13,7 @@ from scipy.signal import butter, sosfilt
 
 SR = 48000
 HERE = Path(__file__).parent
-TOTAL = float(json.load(open(HERE / "timeline.json"))["total"])
+TOTAL = float(os.environ.get("BGM_TOTAL") or json.load(open(HERE / "timeline.json"))["total"])
 N = int(round(TOTAL * SR))
 BEAT = 60 / 98
 BAR = 4 * BEAT

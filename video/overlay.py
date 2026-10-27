@@ -20,6 +20,8 @@ INSERTS: list[tuple[Path, float, float, int, int, int]] = [
     (A / "hardware/hw01_ptz_dome_camera.mp4", 1.2, 4.6, 1000, 460, 160),
     (A / "hardware/hw06_police_control_room.mp4", 7.8, 11.3, 560, 1320, 520),
     (A / "hardware/hw03_dome_camera_haze.mp4", 12.4, 16.4, 600, 1260, 470),
+    # intro: the builder, while the narration introduces VisionDoctor (card has its own alpha, no border)
+    (A / "team_card.mov", 31.8, 38.6, 1200, 360, 540),
     # cloud: real AWS console in the empty right column while the architecture draws (200-212 s)
     (A / "awsconsole/01_ec2.png", 200.2, 202.6, 690, 1200, 200),
     (A / "awsconsole/02_cloudfront.png", 202.7, 205.0, 690, 1200, 200),
@@ -49,14 +51,15 @@ def main() -> None:
     chains, last = [], "0:v"
     for n, (p, t0, t1, w, x, y) in enumerate(items, start=1):
         dur = t1 - t0
-        if p.suffix == ".mp4":
+        if p.suffix in (".mp4", ".mov"):
             cmd += ["-i", str(p)]
         else:
             cmd += ["-loop", "1", "-framerate", "60", "-t", f"{dur:.3f}", "-i", str(p)]
         chains.append(
             f"[{n}:v]trim=duration={dur:.3f},setpts=PTS-STARTPTS,fps=60,scale={w}:-2,"
-            f"pad=iw+{2 * BORDER}:ih+{2 * BORDER}:{BORDER}:{BORDER}:color={CREAM},format=yuva420p,"
-            f"fade=t=in:st=0:d={FADE}:alpha=1,fade=t=out:st={dur - FADE:.3f}:d={FADE}:alpha=1,"
+            + ("format=yuva420p," if p.suffix == ".mov" else
+               f"pad=iw+{2 * BORDER}:ih+{2 * BORDER}:{BORDER}:{BORDER}:color={CREAM},format=yuva420p,")
+            + f"fade=t=in:st=0:d={FADE}:alpha=1,fade=t=out:st={dur - FADE:.3f}:d={FADE}:alpha=1,"
             f"setpts=PTS+{t0:.3f}/TB[o{n}]"
         )
         chains.append(f"[{last}][o{n}]overlay={x}:{y}:eof_action=pass:enable='between(t,{t0},{t1})'[v{n}]")
