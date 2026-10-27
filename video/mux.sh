@@ -13,9 +13,10 @@ ffmpeg -y -v error -i build/narration.wav -i build/bgm.wav -filter_complex \
 # 3) concat the rendered parts
 ls build/part*.mp4 | sort | sed "s|^|file '$(pwd)/|;s|$|'|" > build/parts.txt
 ffmpeg -y -v error -f concat -safe 0 -i build/parts.txt -c copy build/video_nosound.mp4
-# (overlay steps go here, between concat and the final mux)
+# 3b) real-world inserts: stock hardware clips, AWS console screenshots, CloudWatch widgets
+python3 overlay.py
 # 4) mux + burn subtitles (cream text on a dark box)
-ffmpeg -y -v error -i build/video_nosound.mp4 -i build/mix.wav -map 0:v -map 1:a \
+ffmpeg -y -v error -i build/video_overlaid.mp4 -i build/mix.wav -map 0:v -map 1:a \
   -vf "subtitles=build/subs.srt:force_style='FontName=DejaVu Sans,FontSize=15,PrimaryColour=&H00F5FAFC,BackColour=&HB0081008,OutlineColour=&HB0081008,BorderStyle=4,Outline=6,Shadow=0,MarginV=24,Alignment=2'" \
   -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p -c:a aac -b:a 192k -movflags +faststart -shortest build/VisionDoctor_demo.mp4
 ffprobe -v error -show_entries format=duration:stream=codec_name,width,height,r_frame_rate -of compact build/VisionDoctor_demo.mp4
