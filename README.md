@@ -8,6 +8,11 @@
   <img alt="Amazon Bedrock" src="https://img.shields.io/badge/Amazon-Bedrock-ffe95c?style=for-the-badge&logo=amazonwebservices&logoColor=fcfaf5&labelColor=0b0d0a">
   <img alt="MCP" src="https://img.shields.io/badge/MCP-13_tools-ffe95c?style=for-the-badge&labelColor=0b0d0a">
   <img alt="License MIT" src="https://img.shields.io/badge/License-MIT-fcfaf5?style=for-the-badge&labelColor=1a3300">
+  <br>
+  <a href="https://github.com/LSUDOKO/VisionDoctor/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/LSUDOKO/VisionDoctor/ci.yml?branch=main&label=tests&style=flat-square&labelColor=0b0d0a"></a>
+  <a href="https://github.com/LSUDOKO/VisionDoctor/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/LSUDOKO/VisionDoctor?style=flat-square&labelColor=0b0d0a&color=ffe95c"></a>
+  <a href="https://github.com/LSUDOKO/VisionDoctor/pkgs/container/visiondoctor"><img alt="Container" src="https://img.shields.io/badge/ghcr.io-visiondoctor-ffe95c?style=flat-square&logo=docker&labelColor=0b0d0a"></a>
+  <img alt="Python 3.12" src="https://img.shields.io/badge/python-3.12-fcfaf5?style=flat-square&logo=python&labelColor=0b0d0a">
 </p>
 
 <p align="center">
@@ -146,6 +151,13 @@ Failure cases and limits are reported in [`docs/REPORT.md`](docs/REPORT.md) §9.
 | API / UI | `api/`, `web/` | FastAPI (Cognito JWT), React + Vite + Tailwind + Recharts dashboard: fleet grid, camera detail with before/after slider, incident queue with one-click approve, trace viewer |
 | Cloud | `infra/` | CDK v2 (Python): VPC, S3/DynamoDB/SQS, Cognito, **COOL Graviton ASG**, Fargate ARM64 API, CloudFront, CloudWatch dashboard/alarms/budget, benchmark stack; cdk-nag |
 | Evidence | `eval/`, `bench/`, `results/` | E1–E5 experiments with bootstrap CIs, calibration, COOL benchmark harness |
+
+## Install
+
+```bash
+docker run -p 8000:8000 ghcr.io/lsudoko/visiondoctor:1.0.0   # dashboard + API on :8000 (local backend, policy agent)
+pip install "visiondoctor-1.0.0-py3-none-any.whl[opencv]"     # wheel from the v1.0.0 release
+```
 
 ## Quick start (local, no AWS account needed)
 
