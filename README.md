@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/img/banner.png" alt="VisionDoctor: the AI that watches the cameras, so every other camera AI can be trusted." width="100%">
+  <img src="https://cdn.jsdelivr.net/gh/LSUDOKO/VisionDoctor@2d53128/docs/img/banner.png" alt="VisionDoctor: the AI that watches the cameras, so every other camera AI can be trusted." width="100%">
 </p>
 
 <p align="center">
@@ -38,7 +38,7 @@ Converse with tool use) acts only through an **MCP tool server**, behind a guard
 decision is traced.
 
 <p align="center">
-  <img src="docs/gif/loop.gif" alt="The VisionDoctor loop: scan, predict, repair, verify, escalate" width="800">
+  <img src="https://cdn.jsdelivr.net/gh/LSUDOKO/VisionDoctor@2d53128/docs/gif/loop.gif" alt="The VisionDoctor loop: scan, predict, repair, verify, escalate" width="800">
 </p>
 
 Entry for the OpenCV AI Competition 2026 (powered by AWS): Grand Prize, Agentic Vision Award,
@@ -51,13 +51,13 @@ Best Use of COOL Award. Full specification in [`docs/`](docs/).
 Each camera learns a reference (day/night buckets, static-region ORB anchors). Here the camera was
 knocked five degrees: ORB features and a USAC MAGSAC homography measure the drift exactly.
 
-<p align="center"><img src="docs/gif/drift_detection.gif" alt="Drift detected with ORB + USAC MAGSAC homography" width="800"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/LSUDOKO/VisionDoctor@2d53128/docs/gif/drift_detection.gif" alt="Drift detected with ORB + USAC MAGSAC homography" width="800"></p>
 
 The other checks catch haze, glare, smudges, occlusion, noise, colour casts, blur, exposure and
 frozen streams. On real MOT17 street footage recall at severity ≥ 3 is **0.911** vs 0.239 for a
 classic tamper detector.
 
-<p align="center"><img src="docs/gif/fault_grid.gif" alt="Grid of injected faults on real MOT17 footage" width="800"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/LSUDOKO/VisionDoctor@2d53128/docs/gif/fault_grid.gif" alt="Grid of injected faults on real MOT17 footage" width="800"></p>
 
 ### 2 · Predict: how much accuracy did the camera AI lose, with no labels?
 
@@ -66,14 +66,14 @@ clean twin; how well the detector agrees with itself across the twins is the tra
 `HistGradientBoostingRegressor` learns to predict that loss from the health signals alone
 (validated against **true** MOT17 AP drop: Spearman ρ **0.50**).
 
-<p align="center"><img src="docs/gif/impact_prediction.gif" alt="Label-free impact prediction from clean and degraded twins" width="800"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/LSUDOKO/VisionDoctor@2d53128/docs/gif/impact_prediction.gif" alt="Label-free impact prediction from clean and degraded twins" width="800"></p>
 
 ### 3 · Repair + 4 · Verify: a fix only counts if a fresh scan confirms it
 
 Realign, exposure, dehaze, white balance, denoise, each with bounds. For drift, realignment
 restored **92%** of the lost person-detection accuracy (AP 0.114 → **0.346**, clean 0.338).
 
-<p align="center"><img src="docs/gif/repair_verify.gif" alt="Realign repair verified by re-scan, AP bars" width="800"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/LSUDOKO/VisionDoctor@2d53128/docs/gif/repair_verify.gif" alt="Realign repair verified by re-scan, AP bars" width="800"></p>
 
 ### The guard: the agent can be wrong, the system cannot
 
@@ -81,7 +81,7 @@ The agent calls OpenCV only through 13 typed MCP tools, and a guard checks every
 bounds, scope, budgets, approvals). In a live Bedrock run the model passed the wrong repair id; the
 guard blocked it, the agent re-planned, verified the fix, and only then closed the incident.
 
-<p align="center"><img src="docs/gif/guard_blocks_repair.gif" alt="Live Bedrock trace: guard blocks a wrong repair id" width="800"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/LSUDOKO/VisionDoctor@2d53128/docs/gif/guard_blocks_repair.gif" alt="Live Bedrock trace: guard blocks a wrong repair id" width="800"></p>
 
 ### 5 · Escalate: physical faults go to a human, with evidence
 
@@ -90,13 +90,13 @@ face-mosaicked evidence and the full agent trace.
 
 | Incident queue (one-click approve) | Agent trace (OpenCV results change the plan) |
 |---|---|
-| ![incidents](docs/img/dashboard_incidents.png) | ![trace](docs/img/dashboard_trace_detail.png) |
+| ![incidents](https://cdn.jsdelivr.net/gh/LSUDOKO/VisionDoctor@2d53128/docs/img/dashboard_incidents.png) | ![trace](https://cdn.jsdelivr.net/gh/LSUDOKO/VisionDoctor@2d53128/docs/img/dashboard_trace_detail.png) |
 
 ## Architecture
 
-<p align="center"><img src="docs/img/architecture_aws.png" alt="VisionDoctor AWS architecture" width="100%"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/LSUDOKO/VisionDoctor@2d53128/docs/img/architecture_aws.png" alt="VisionDoctor AWS architecture" width="100%"></p>
 
-<p align="center"><img src="docs/gif/architecture.gif" alt="Architecture pull-back from the demo" width="800"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/LSUDOKO/VisionDoctor@2d53128/docs/gif/architecture.gif" alt="Architecture pull-back from the demo" width="800"></p>
 
 ```mermaid
 flowchart LR
@@ -112,13 +112,13 @@ flowchart LR
 
 ## The dashboard (live on AWS)
 
-<p align="center"><img src="docs/gif/live_website.gif" alt="Walkthrough of the live dashboard" width="800"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/LSUDOKO/VisionDoctor@2d53128/docs/gif/live_website.gif" alt="Walkthrough of the live dashboard" width="800"></p>
 
 | Landing | Fleet |
 |---|---|
-| ![landing](docs/img/ui_landing.png) | ![fleet](docs/img/ui_fleet.png) |
+| ![landing](https://cdn.jsdelivr.net/gh/LSUDOKO/VisionDoctor@2d53128/docs/img/ui_landing.png) | ![fleet](https://cdn.jsdelivr.net/gh/LSUDOKO/VisionDoctor@2d53128/docs/img/ui_fleet.png) |
 | **Camera detail** | **Agent trace** |
-| ![camera](docs/img/ui_camera.png) | ![trace](docs/img/ui_trace.png) |
+| ![camera](https://cdn.jsdelivr.net/gh/LSUDOKO/VisionDoctor@2d53128/docs/img/ui_camera.png) | ![trace](https://cdn.jsdelivr.net/gh/LSUDOKO/VisionDoctor@2d53128/docs/img/ui_trace.png) |
 
 ## Measured results (all from `results/final/`)
 
@@ -193,7 +193,7 @@ Seeds are fixed (7). Frozen outputs used by the report are copied to `results/fi
 
 **https://djekr86y464c8.cloudfront.net** (Cognito sign-in; judge credentials are in the private submission notes).
 
-![live AWS dashboard](docs/img/live_aws_dashboard.png)
+![live AWS dashboard](https://cdn.jsdelivr.net/gh/LSUDOKO/VisionDoctor@2d53128/docs/img/live_aws_dashboard.png)
 It is the credit-friendly *lean* profile (`infra/stacks/lean_stack.py`, ~$1.3/day): one Graviton4 `c8g.large`
 (Ubuntu 24.04 + official OpenCV 5.0 wheel) behind CloudFront (origin reachable only from CloudFront's prefix list),
 S3 + DynamoDB, Cognito, SNS alerts, CloudWatch metrics and dashboard, AWS Budgets alerts. The agent runs on Amazon
