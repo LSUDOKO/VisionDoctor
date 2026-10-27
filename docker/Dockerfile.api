@@ -15,6 +15,7 @@ COPY requirements.lock pyproject.toml README.md ./
 RUN pip install --no-cache-dir --require-hashes -r requirements.lock
 COPY src ./src
 COPY scripts ./scripts
+COPY results/final/impact_hgb.joblib ./results/final/impact_hgb.joblib
 RUN pip install --no-cache-dir --no-deps -e . && bash scripts/download_models.sh && bash scripts/download_data.sh
 COPY --from=web /web/dist ./web/dist
 RUN mkdir -p /app/vd_state /app/results && chown -R vd /app

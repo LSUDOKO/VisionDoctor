@@ -28,6 +28,7 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=raw,value=latest
+            type=raw,value=1.0.0
           labels: |
             org.opencontainers.image.title=VisionDoctor
             org.opencontainers.image.description=Agentic camera-health system on OpenCV 5: diagnose, predict AI accuracy loss, repair, verify, escalate

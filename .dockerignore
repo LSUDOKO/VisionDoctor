@@ -5,6 +5,7 @@ infra
 data
 models
 results
+!results/final/impact_hgb.joblib
 vd_state
 web/node_modules
 web/dist
